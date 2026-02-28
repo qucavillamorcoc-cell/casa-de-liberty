@@ -284,6 +284,10 @@ ADMIN_EMAIL = os.getenv('ADMIN_EMAIL', 'admin@casadeliberty.com')
 
 # Security Settings (Production)
 if not DEBUG:
+    # Trust Railway's reverse proxy headers to avoid HTTPS redirect loops.
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    USE_X_FORWARDED_HOST = True
+
     SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'True') == 'True'
     SESSION_COOKIE_SECURE = os.getenv('SESSION_COOKIE_SECURE', 'True') == 'True'
     CSRF_COOKIE_SECURE = os.getenv('CSRF_COOKIE_SECURE', 'True') == 'True'
