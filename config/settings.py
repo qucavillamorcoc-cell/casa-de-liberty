@@ -2,6 +2,7 @@ from pathlib import Path
 import os
 import sys
 import socket
+from urllib.parse import urlparse, unquote
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -61,6 +62,15 @@ LOCAL_LAN_IP = _detect_local_ipv4()
 if LOCAL_LAN_IP and LOCAL_LAN_IP not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append(LOCAL_LAN_IP)
 
+# Railway-provided public domain support
+RAILWAY_PUBLIC_DOMAIN = os.getenv('RAILWAY_PUBLIC_DOMAIN', '').strip()
+if RAILWAY_PUBLIC_DOMAIN:
+    if RAILWAY_PUBLIC_DOMAIN not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(RAILWAY_PUBLIC_DOMAIN)
+    # Allow all Railway generated subdomains unless explicitly restricted
+    if '.up.railway.app' not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append('.up.railway.app')
+
 # CSRF Configuration for development - allow requests from local network
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:8000',
@@ -81,6 +91,11 @@ if LOCAL_LAN_IP:
             origin = f'{scheme}://{LOCAL_LAN_IP}:{port}'
             if origin not in CSRF_TRUSTED_ORIGINS:
                 CSRF_TRUSTED_ORIGINS.append(origin)
+
+if RAILWAY_PUBLIC_DOMAIN:
+    railway_origin = f'https://{RAILWAY_PUBLIC_DOMAIN}'
+    if railway_origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(railway_origin)
 
 # Alternative: More permissive for local development (NOT for production!)
 # CSRF_TRUSTED_ORIGINS = ['http://*:8000', 'http://*:*']
@@ -131,10 +146,55 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-# Auto-detect database backend from environment
+DATABASE_URL = os.getenv('DATABASE_URL', '').strip()
 DB_ENGINE = os.getenv('DB_ENGINE', 'sqlite3').lower()
 
-if DB_ENGINE == 'postgresql':
+if DATABASE_URL:
+    parsed = urlparse(DATABASE_URL)
+    scheme = (parsed.scheme or '').lower()
+
+    if scheme in ('postgres', 'postgresql', 'postgresql_psycopg2'):
+        default_db = {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': unquote((parsed.path or '/').lstrip('/')),
+            'USER': unquote(parsed.username or ''),
+            'PASSWORD': unquote(parsed.password or ''),
+            'HOST': parsed.hostname or 'localhost',
+            'PORT': str(parsed.port or 5432),
+            'CONN_MAX_AGE': int(os.getenv('DB_CONN_MAX_AGE', '600')),
+            'OPTIONS': {
+                'sslmode': os.getenv('DB_SSLMODE', 'require'),
+            },
+        }
+        DATABASES = {'default': default_db}
+    elif scheme in ('mysql', 'mysql2'):
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.mysql',
+                'NAME': unquote((parsed.path or '/').lstrip('/')),
+                'USER': unquote(parsed.username or ''),
+                'PASSWORD': unquote(parsed.password or ''),
+                'HOST': parsed.hostname or 'localhost',
+                'PORT': str(parsed.port or 3306),
+            }
+        }
+    elif scheme in ('sqlite', 'sqlite3'):
+        db_name = unquote((parsed.path or '/db.sqlite3').lstrip('/'))
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / db_name,
+            }
+        }
+    else:
+        # Fallback if DATABASE_URL has an unsupported scheme.
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+            }
+        }
+elif DB_ENGINE == 'postgresql':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -143,7 +203,7 @@ if DB_ENGINE == 'postgresql':
             'PASSWORD': os.getenv('DB_PASSWORD', ''),
             'HOST': os.getenv('DB_HOST', 'localhost'),
             'PORT': os.getenv('DB_PORT', '5432'),
-            'CONN_MAX_AGE': 600,  # Connection pooling
+            'CONN_MAX_AGE': 600,
         }
     }
 elif DB_ENGINE == 'mysql':
@@ -158,7 +218,6 @@ elif DB_ENGINE == 'mysql':
         }
     }
 else:
-    # Default to SQLite for development
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -201,7 +260,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'  # Production static files
 STATICFILES_DIRS = [BASE_DIR / 'static']  # Development static files
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'  # Production optimization

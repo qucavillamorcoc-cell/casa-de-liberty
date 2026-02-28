@@ -16,5 +16,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # collect static files if you use them
 # RUN python manage.py collectstatic --noinput
 
-# default command (Railway will set PORT env)
-CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:$PORT"]
+# default command (Railway sets PORT). Use shell form so ${PORT} expands.
+CMD ["sh", "-c", "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn config.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers 2 --timeout 120"]
