@@ -1,5 +1,5 @@
-# use a slim Python base image
-FROM python:3.11-slim
+# use a slim Python base image matching Django 6 requirements
+FROM python:3.12-slim
 
 # install system packages that your app needs
 RUN apt-get update && \
