@@ -3,9 +3,11 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
-from .models import Apartment, Lease, UserProfile, Maintenance, Notification, RentPayment, RentDueDate, ApartmentPhoto
+from .models import Apartment, Lease, UserProfile, Maintenance, Notification, RentPayment, RentDueDate, ApartmentPhoto, OTP
 from datetime import datetime, timedelta
+import logging
 from django.db.models import Sum, Q, Count
+from django.db import transaction
 import json
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.csrf import csrf_protect
@@ -16,6 +18,8 @@ import csv
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 # PDF Export (optional)
 try:
     from reportlab.lib.pagesizes import letter  # noqa
@@ -29,7 +33,8 @@ from .emails import (
     send_lease_confirmation_email, 
     send_payment_confirmation_email, 
     send_cancellation_email,
-    send_admin_notification
+    send_admin_notification,
+    send_otp_email,
 )
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -37,7 +42,10 @@ from django.utils.encoding import force_bytes, force_str
 from django.core.mail import send_mail
 from django.conf import settings
 from django.utils.dateparse import parse_date
+from django.utils import timezone
 import calendar
+
+logger = logging.getLogger(__name__)
 
 # ============================================
 # PUBLIC VIEWS (No login required)
@@ -99,17 +107,31 @@ def user_login(request):
 
 def register(request):
     if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
-        email = request.POST.get('email', '')
-        contact_number = request.POST.get('contact_number', '')
-        
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '')
+        email = request.POST.get('email', '').strip().lower()
+        contact_number = request.POST.get('contact_number', '').strip()
+
+        if not username or not password or not email:
+            messages.error(request, 'Username, email, and password are required.')
+            return render(request, 'register.html')
+
+        try:
+            validate_email(email)
+        except ValidationError:
+            messages.error(request, 'Please enter a valid email address.')
+            return render(request, 'register.html')
+
         if User.objects.filter(username=username).exists():
             messages.error(request, 'Username already exists')
             return render(request, 'register.html')
-        
+
+        if User.objects.filter(email__iexact=email).exists():
+            messages.error(request, 'Email is already registered. Please use another email.')
+            return render(request, 'register.html')
+
         user = User.objects.create_user(username=username, password=password, email=email)
-        
+
         # Create user profile with contact number
         UserProfile.objects.create(
             user=user,
@@ -2110,29 +2132,45 @@ def request_event(request):
 def password_reset_request(request):
     """Request password reset"""
     if request.method == 'POST':
-        username_or_email = request.POST['username_or_email']
-        
+        username_or_email = request.POST.get('username_or_email', '').strip()
+
+        if not username_or_email:
+            messages.error(request, 'Please enter your username or email address.')
+            return render(request, 'password_reset.html')
+
         # Try to find user by username or email
         user = None
         try:
             if '@' in username_or_email:
-                user = User.objects.get(email=username_or_email)
+                user = User.objects.filter(email__iexact=username_or_email).order_by('id').first()
             else:
-                user = User.objects.get(username=username_or_email)
-        except User.DoesNotExist:
-            # Don't reveal if user exists or not for security
+                user = User.objects.filter(username=username_or_email).first()
+        except Exception:
+            logger.exception('Unexpected error while looking up user for password reset.')
+            messages.error(request, 'Unable to process your request right now. Please try again later.')
+            return render(request, 'password_reset.html')
+
+        # Don't reveal if user exists or not for security
+        if not user:
             messages.success(request, 'If an account exists with that information, a password reset link has been sent.')
             return redirect('password_reset')
-        
+
+        # If no email is configured, we still return the generic success message
+        # to avoid account enumeration.
+        if not user.email:
+            logger.warning('Password reset requested for user without email: user_id=%s', user.id)
+            messages.success(request, 'If an account exists with that information, a password reset link has been sent.')
+            return redirect('password_reset')
+
         # Generate token
         token = default_token_generator.make_token(user)
         uid = urlsafe_base64_encode(force_bytes(user.pk))
-        
+
         # Build reset link
         reset_link = request.build_absolute_uri(
             f'/password-reset-confirm/{uid}/{token}/'
         )
-        
+
         # Send email
         subject = 'Password Reset - Casa de Liberty'
         message = f"""
@@ -2150,20 +2188,21 @@ This link will expire in 24 hours.
 Best regards,
 Casa de Liberty Team
         """
-        
+
         try:
             send_mail(
                 subject,
                 message,
                 settings.DEFAULT_FROM_EMAIL,
-                [user.email] if user.email else [],
+                [user.email],
                 fail_silently=False,
             )
-            messages.success(request, 'Password reset instructions have been sent to your email.')
-        except Exception as e:
-            print(f"Email error: {e}")
-            messages.info(request, f'Password reset link: {reset_link}')
-        
+        except Exception:
+            logger.exception('Failed sending password reset email for user_id=%s', user.id)
+            messages.error(request, 'Unable to send reset email right now. Please try again later.')
+            return render(request, 'password_reset.html')
+
+        messages.success(request, 'Password reset instructions have been sent to your email.')
         return redirect('login')
     
     return render(request, 'password_reset.html')
@@ -2178,8 +2217,12 @@ def password_reset_confirm(request, uidb64, token):
     
     if user is not None and default_token_generator.check_token(user, token):
         if request.method == 'POST':
-            password1 = request.POST['password1']
-            password2 = request.POST['password2']
+            password1 = request.POST.get('password1', '')
+            password2 = request.POST.get('password2', '')
+
+            if not password1 or not password2:
+                messages.error(request, 'Please fill in both password fields.')
+                return render(request, 'password_reset_confirm.html', {'validlink': True})
             
             if password1 != password2:
                 messages.error(request, 'Passwords do not match!')
@@ -2190,8 +2233,13 @@ def password_reset_confirm(request, uidb64, token):
                 return render(request, 'password_reset_confirm.html', {'validlink': True})
             
             # Set new password
-            user.set_password(password1)
-            user.save()
+            try:
+                user.set_password(password1)
+                user.save(update_fields=['password'])
+            except Exception:
+                logger.exception('Failed to reset password for user_id=%s', user.id)
+                messages.error(request, 'Unable to reset your password right now. Please try again.')
+                return render(request, 'password_reset_confirm.html', {'validlink': True})
             
             messages.success(request, 'Your password has been reset successfully! You can now log in.')
             return redirect('login')
@@ -2219,26 +2267,34 @@ def settings(request):
                     messages.error(request, 'Please enter a valid email address!')
                     return render(request, 'settings.html')
             
-            # Update user fields
-            request.user.first_name = first_name
-            request.user.last_name = last_name
-            request.user.email = email
-            request.user.save()
-            
-            # Update or create user profile
-            profile, created = UserProfile.objects.get_or_create(user=request.user)
-            if contact_number:
-                profile.contact_number = contact_number
-                profile.save()
+            try:
+                # Update user fields
+                request.user.first_name = first_name
+                request.user.last_name = last_name
+                request.user.email = email
+                request.user.save(update_fields=['first_name', 'last_name', 'email'])
+                
+                # Update or create user profile
+                profile, created = UserProfile.objects.get_or_create(user=request.user)
+                profile.contact_number = contact_number or ''
+                profile.save(update_fields=['contact_number'])
+            except Exception:
+                logger.exception('Failed updating profile for user_id=%s', request.user.id)
+                messages.error(request, 'Unable to update your profile right now. Please try again.')
+                return render(request, 'settings.html')
             
             messages.success(request, 'Your profile has been updated successfully!')
             return render(request, 'settings.html')
         
         else:
             # Handle password change (existing code)
-            current_password = request.POST.get('current_password')
-            new_password1 = request.POST.get('new_password1')
-            new_password2 = request.POST.get('new_password2')
+            current_password = request.POST.get('current_password', '')
+            new_password1 = request.POST.get('new_password1', '')
+            new_password2 = request.POST.get('new_password2', '')
+
+            if not current_password or not new_password1 or not new_password2:
+                messages.error(request, 'Please fill in all password fields.')
+                return render(request, 'settings.html')
             
             # Verify current password
             if not request.user.check_password(current_password):
@@ -2260,58 +2316,193 @@ def settings(request):
                 messages.error(request, 'New password must be different from current password!')
                 return render(request, 'settings.html')
             
-            # Set new password
-            request.user.set_password(new_password1)
-            request.user.save()
-            
-            # Update session to keep user logged in
-            from django.contrib.auth import update_session_auth_hash
-            update_session_auth_hash(request, request.user)
+            try:
+                # Set new password
+                request.user.set_password(new_password1)
+                request.user.save(update_fields=['password'])
+                
+                # Update session to keep user logged in
+                from django.contrib.auth import update_session_auth_hash
+                update_session_auth_hash(request, request.user)
+            except Exception:
+                logger.exception('Failed changing password from settings for user_id=%s', request.user.id)
+                messages.error(request, 'Unable to change your password right now. Please try again.')
+                return render(request, 'settings.html')
             
             messages.success(request, 'Your password has been changed successfully!')
             return render(request, 'settings.html')
     
     return render(request, 'settings.html')
 
+@login_required
 def change_password(request):
-    """Change password while logged in"""
+    """Change password while logged in using OTP verification."""
+    show_otp_form = False
+
+    email_available = bool((request.user.email or '').strip())
+    if not email_available:
+        messages.error(request, 'Please add an email address in settings before changing your password.')
+        return redirect('settings')
+
     if request.method == 'POST':
-        current_password = request.POST['current_password']
-        new_password1 = request.POST['new_password1']
-        new_password2 = request.POST['new_password2']
-        
-        # Verify current password
-        if not request.user.check_password(current_password):
-            messages.error(request, 'Current password is incorrect!')
-            return render(request, 'change_password.html')
-        
-        # Check if new passwords match
-        if new_password1 != new_password2:
-            messages.error(request, 'New passwords do not match!')
-            return render(request, 'change_password.html')
-        
-        # Check password length
-        if len(new_password1) < 6:
-            messages.error(request, 'Password must be at least 6 characters long!')
-            return render(request, 'change_password.html')
-        
-        # Check if new password is different from current
-        if current_password == new_password1:
-            messages.error(request, 'New password must be different from current password!')
-            return render(request, 'change_password.html')
-        
-        # Set new password
-        request.user.set_password(new_password1)
-        request.user.save()
-        
-        # Update session to keep user logged in
-        from django.contrib.auth import update_session_auth_hash
-        update_session_auth_hash(request, request.user)
-        
-        messages.success(request, 'Your password has been changed successfully!')
-        return redirect('dashboard')
-    
-    return render(request, 'change_password.html')
+        action = request.POST.get('action')
+
+        if action == 'request_otp':
+            current_password = request.POST.get('current_password', '')
+
+            if not current_password:
+                messages.error(request, 'Please enter your current password.')
+                return render(request, 'change_password.html', {'show_otp_form': False})
+
+            if not request.user.check_password(current_password):
+                messages.error(request, 'Current password is incorrect!')
+                return render(request, 'change_password.html', {'show_otp_form': False})
+
+            try:
+                otp_code = OTP.generate_otp()
+                OTP.objects.update_or_create(
+                    user=request.user,
+                    defaults={
+                        'otp_code': otp_code,
+                        'expires_at': timezone.now() + timedelta(minutes=10),
+                        'is_used': False,
+                    }
+                )
+            except Exception:
+                logger.exception('Failed generating/storing OTP for user_id=%s', request.user.id)
+                messages.error(request, 'Unable to generate OTP right now. Please try again.')
+                return render(request, 'change_password.html', {
+                    'show_otp_form': False,
+                    'email_available': email_available,
+                })
+
+            try:
+                if not send_otp_email(request.user, otp_code):
+                    messages.error(request, 'Unable to send OTP email right now. Please try again.')
+                    return render(request, 'change_password.html', {
+                        'show_otp_form': False,
+                        'email_available': email_available,
+                    })
+            except Exception:
+                logger.exception('Unexpected OTP email error for user_id=%s', request.user.id)
+                messages.error(request, 'Unable to send OTP email right now. Please try again.')
+                return render(request, 'change_password.html', {
+                    'show_otp_form': False,
+                    'email_available': email_available,
+                })
+
+            messages.success(request, 'OTP sent to your email. Enter it below to finish changing your password.')
+
+            show_otp_form = True
+
+        elif action == 'verify_otp':
+            show_otp_form = True
+            otp_code = request.POST.get('otp_code', '').strip()
+            new_password1 = request.POST.get('new_password1', '')
+            new_password2 = request.POST.get('new_password2', '')
+
+            if not otp_code:
+                messages.error(request, 'Please enter the OTP code from your email.')
+                return render(request, 'change_password.html', {
+                    'show_otp_form': True,
+                    'email_available': email_available,
+                })
+
+            if not otp_code.isdigit() or len(otp_code) != 6:
+                messages.error(request, 'OTP must be a 6-digit code.')
+                return render(request, 'change_password.html', {
+                    'show_otp_form': True,
+                    'email_available': email_available,
+                })
+
+            if not new_password1 or not new_password2:
+                messages.error(request, 'Please fill in both new password fields.')
+                return render(request, 'change_password.html', {
+                    'show_otp_form': True,
+                    'email_available': email_available,
+                })
+
+            if new_password1 != new_password2:
+                messages.error(request, 'New passwords do not match!')
+                return render(request, 'change_password.html', {
+                    'show_otp_form': True,
+                    'email_available': email_available,
+                })
+
+            if len(new_password1) < 6:
+                messages.error(request, 'Password must be at least 6 characters long!')
+                return render(request, 'change_password.html', {
+                    'show_otp_form': True,
+                    'email_available': email_available,
+                })
+
+            if request.user.check_password(new_password1):
+                messages.error(request, 'New password must be different from current password!')
+                return render(request, 'change_password.html', {
+                    'show_otp_form': True,
+                    'email_available': email_available,
+                })
+
+            try:
+                otp_record = OTP.objects.filter(user=request.user, is_used=False).first()
+            except Exception:
+                logger.exception('Failed loading OTP record for user_id=%s', request.user.id)
+                messages.error(request, 'Unable to verify OTP right now. Please try again.')
+                return render(request, 'change_password.html', {
+                    'show_otp_form': True,
+                    'email_available': email_available,
+                })
+
+            if not otp_record:
+                messages.error(request, 'No active OTP found. Please request a new OTP.')
+                return render(request, 'change_password.html', {
+                    'show_otp_form': False,
+                    'email_available': email_available,
+                })
+
+            if otp_record.is_expired():
+                messages.error(request, 'Your OTP has expired. Please request a new one.')
+                return render(request, 'change_password.html', {
+                    'show_otp_form': False,
+                    'email_available': email_available,
+                })
+
+            if otp_record.otp_code != otp_code:
+                messages.error(request, 'Invalid OTP code. Please try again.')
+                return render(request, 'change_password.html', {
+                    'show_otp_form': True,
+                    'email_available': email_available,
+                })
+
+            try:
+                with transaction.atomic():
+                    request.user.set_password(new_password1)
+                    request.user.save(update_fields=['password'])
+
+                    otp_record.is_used = True
+                    otp_record.save(update_fields=['is_used'])
+
+                # Update session to keep user logged in
+                from django.contrib.auth import update_session_auth_hash
+                update_session_auth_hash(request, request.user)
+            except Exception:
+                logger.exception('Failed finalizing OTP password change for user_id=%s', request.user.id)
+                messages.error(request, 'Unable to change your password right now. Please try again.')
+                return render(request, 'change_password.html', {
+                    'show_otp_form': True,
+                    'email_available': email_available,
+                })
+
+            messages.success(request, 'Your password has been changed successfully!')
+            return redirect('dashboard')
+
+        else:
+            messages.error(request, 'Invalid password change request. Please try again.')
+
+    return render(request, 'change_password.html', {
+        'show_otp_form': show_otp_form,
+        'email_available': email_available,
+    })
 
 
 # ============================================
