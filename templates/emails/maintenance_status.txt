@@ -1,0 +1,16 @@
+Maintenance Request #{{ maintenance.id }} - {{ action|capfirst }}
+
+Hello {{ maintenance.user.get_full_name|default:maintenance.user.username }},
+
+Your maintenance request for Room {{ maintenance.room.room_number }} has been {{ action }}.
+
+{% if notes %}Notes from staff: {{ notes }}
+
+{% endif %}
+Request details:
+- Type: {{ maintenance.get_maintenance_type_display }}
+- Priority: {{ maintenance.get_priority_display }}
+- Submitted: {{ maintenance.created_at|date:"M d, Y H:i" }}
+
+Thank you,
+Casa de Liberty Team

@@ -1,0 +1,109 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}Lease Confirmed - Casa de Liberty{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Lease Confirmation</h1>
+    <div class="user-profile">
+        <div class="user-info" style="text-align: right;">
+            <p>{{ request.user.username }}</p>
+            <span>Tenant</span>
+        </div>
+        <div class="user-avatar">{{ request.user.username.0|upper }}</div>
+    </div>
+</div>
+
+<!-- Success Message -->
+<div style="background: #d1fae5; border: 2px solid #10b981; border-radius: 12px; padding: 40px; text-align: center; margin-bottom: 30px;">
+    <div style="font-size: 64px; margin-bottom: 16px;">✅</div>
+    <h2 style="font-size: 28px; font-weight: 700; color: #065f46; margin: 0 0 8px 0;">Lease Confirmed!</h2>
+    <p style="font-size: 16px; color: #047857; margin: 0;">Your lease agreement has been successfully created.</p>
+</div>
+
+<!-- Lease Details -->
+<div class="section">
+    <h3 style="font-size: 18px; font-weight: 600; margin: 0 0 24px 0;">Lease Details</h3>
+    
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 24px;">
+        <div style="background: #f8fafc; padding: 20px; border-radius: 10px;">
+            <p style="font-size: 12px; color: #64748b; margin: 0 0 6px 0; font-weight: 600;">LEASE ID</p>
+            <p style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0;">#{{ lease.id }}</p>
+        </div>
+        
+        <div style="background: #f8fafc; padding: 20px; border-radius: 10px;">
+            <p style="font-size: 12px; color: #64748b; margin: 0 0 6px 0; font-weight: 600;">STATUS</p>
+            <span class="badge badge-success" style="font-size: 14px; padding: 6px 16px;">{{ lease.get_status_display }}</span>
+        </div>
+    </div>
+    
+    <div style="border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; margin-bottom: 24px;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <tbody>
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                    <td style="padding: 16px; font-weight: 600; color: #64748b; width: 200px;">Apartment</td>
+                    <td style="padding: 16px; color: #1e293b; font-weight: 600;">Unit {{ lease.apartment.unit_number }} ({{ lease.apartment.get_apartment_type_display }})</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                    <td style="padding: 16px; font-weight: 600; color: #64748b;">Tenant Name</td>
+                    <td style="padding: 16px; color: #1e293b;">{{ lease.tenant.username }}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                    <td style="padding: 16px; font-weight: 600; color: #64748b;">Move-in Date</td>
+                    <td style="padding: 16px; color: #1e293b;">{{ lease.move_in_date }}</td>
+                </tr>
+                {% if lease.move_out_date %}
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                    <td style="padding: 16px; font-weight: 600; color: #64748b;">Move-out Date</td>
+                    <td style="padding: 16px; color: #1e293b;">{{ lease.move_out_date }}</td>
+                </tr>
+                {% else %}
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                    <td style="padding: 16px; font-weight: 600; color: #64748b;">Lease Type</td>
+                    <td style="padding: 16px; color: #1e293b;">Ongoing (Month-to-Month)</td>
+                </tr>
+                {% endif %}
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                    <td style="padding: 16px; font-weight: 600; color: #64748b;">Lease Type</td>
+                    <td style="padding: 16px; color: #1e293b;">{{ lease.get_lease_type_display }}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                    <td style="padding: 16px; font-weight: 600; color: #64748b;">Number of Occupants</td>
+                    <td style="padding: 16px; color: #1e293b;">{{ lease.num_occupants }}</td>
+                </tr>
+                {% if lease.special_requests %}
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                    <td style="padding: 16px; font-weight: 600; color: #64748b;">Special Requests</td>
+                    <td style="padding: 16px; color: #1e293b; font-style: italic;">{{ lease.special_requests }}</td>
+                </tr>
+                {% endif %}
+                <tr style="background: #f0f9ff;">
+                    <td style="padding: 20px; font-weight: 700; color: #1e293b; font-size: 16px;">Monthly Rent</td>
+                    <td style="padding: 20px; font-weight: 700; color: #3b82f6; font-size: 24px;">₱{{ lease.apartment.monthly_rent }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Next Steps -->
+    <div style="background: #f0f9ff; border: 2px solid #93c5fd; border-radius: 10px; padding: 24px; margin-bottom: 24px;">
+        <h4 style="color: #1e40af; margin: 0 0 12px 0;">📋 What's Next?</h4>
+        <ul style="color: #1e40af; margin: 0; padding-left: 20px; line-height: 1.8;">
+            <li>Your first rent payment is due on the move-in date</li>
+            <li>You'll receive payment reminders before each month's due date</li>
+            <li>Submit maintenance requests through your tenant dashboard</li>
+            <li>View your lease documents and payment history anytime</li>
+        </ul>
+    </div>
+    
+    <!-- Actions -->
+    <div style="display: flex; gap: 12px; justify-content: center;">
+        <a href="{% url 'dashboard' %}" class="btn btn-primary">
+            View My Leases
+        </a>
+        <a href="{% url 'apartments' %}" class="btn btn-secondary">
+            Browse More Apartments
+        </a>
+    </div>
+</div>
+{% endblock %}

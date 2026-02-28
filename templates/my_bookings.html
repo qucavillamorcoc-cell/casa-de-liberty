@@ -1,0 +1,118 @@
+{% extends "base_dashboard.html" %}
+{% block title %}My Bookings - Casa de Liberty{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">My Bookings</h1>
+    <div class="user-profile">
+        <div class="user-info" style="text-align: right;">
+            <p>{{ request.user.username }}</p>
+            <span>Tenant</span>
+        </div>
+        <div class="user-avatar">{{ request.user.username.0|upper }}</div>
+    </div>
+</div>
+
+<!-- CTA Button -->
+<div style="margin-bottom: 32px; animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.1s backwards;">
+    <a href="{% url 'rooms' %}" class="btn-luxury btn-luxury-primary" style="padding: 14px 28px; text-decoration: none; border: none; cursor: pointer; border-radius: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; display: inline-block; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
+        ➕ Book a New Room
+    </a>
+</div>
+
+<!-- Bookings List -->
+<div class="section" style="animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.2s backwards;">
+    <h2 class="luxury-title" style="margin-bottom: 24px; font-size: 24px;">Your Bookings</h2>
+    
+    {% with bookings=request.user.booking_set.all %}
+    {% if bookings %}
+    <div style="display: grid; gap: 24px;">
+        {% for booking in bookings %}
+        <div class="luxury-card" style="animation-delay: {{ forloop.counter|add:0.1 }}s;">
+            <div class="luxury-content" style="padding: 32px;">
+                <!-- Booking Header -->
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
+                    <div>
+                        <h3 class="luxury-title" style="font-size: 22px; margin-bottom: 4px;">Booking #{{ booking.id }}</h3>
+                        <p class="luxury-subtitle">Room {{ booking.room.room_number }}</p>
+                    </div>
+                    <span style="display: inline-block; padding: 8px 16px; border-radius: 10px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; background: {% if booking.status == 'confirmed' %}linear-gradient(135deg, #d1fae5, #a7f3d0); color: #065f46;{% elif booking.status == 'pending' %}linear-gradient(135deg, #fef3c7, #fde68a); color: #92400e;{% elif booking.status == 'completed' %}linear-gradient(135deg, #dbeafe, #bfdbfe); color: #1e40af;{% else %}#f3f4f6; color: #374151;{% endif %}">
+                        {{ booking.get_status_display }}
+                    </span>
+                </div>
+                
+                <div class="luxury-divider"></div>
+                
+                <!-- Booking Details Grid -->
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; padding: 20px; background: linear-gradient(135deg, #f8fafb, #f1f5f9); border-radius: 12px; border-left: 4px solid #667eea;">
+                    <div>
+                        <p style="font-size: 12px; color: #64748b; font-weight: 700; margin: 0 0 6px 0; text-transform: uppercase; letter-spacing: 0.5px;">Check-in</p>
+                        <p style="font-size: 16px; font-weight: 700; color: #1e293b; margin: 0;">{{ booking.check_in|date:"M d, Y" }}</p>
+                    </div>
+                    <div>
+                        <p style="font-size: 12px; color: #64748b; font-weight: 700; margin: 0 0 6px 0; text-transform: uppercase; letter-spacing: 0.5px;">Check-out</p>
+                        <p style="font-size: 16px; font-weight: 700; color: #1e293b; margin: 0;">{{ booking.check_out|date:"M d, Y" }}</p>
+                    </div>
+                    <div>
+                        <p style="font-size: 12px; color: #64748b; font-weight: 700; margin: 0 0 6px 0; text-transform: uppercase; letter-spacing: 0.5px;">Nights</p>
+                        <p style="font-size: 16px; font-weight: 700; color: #1e293b; margin: 0;">{{ booking.calculate_nights }}</p>
+                    </div>
+                </div>
+                
+                <!-- Pricing Info -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                    <div style="padding: 12px; background: #f8fafc; border-radius: 10px; border-left: 3px solid #667eea;">
+                        <p style="font-size: 12px; color: #64748b; margin: 0 0 6px 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Total Amount</p>
+                        <p style="font-size: 22px; font-weight: 900; color: #667eea; margin: 0;">₱{{ booking.total_price }}</p>
+                    </div>
+                    <div style="padding: 12px; background: #d1fae5; border-radius: 10px; border-left: 3px solid #10b981;">
+                        <p style="font-size: 12px; color: #065f46; margin: 0 0 6px 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Paid</p>
+                        <p style="font-size: 22px; font-weight: 900; color: #10b981; margin: 0;">₱{{ booking.get_total_paid }}</p>
+                    </div>
+                    <div style="padding: 12px; background: {% if booking.is_fully_paid %}#d1fae5{% else %}#fef3c7{% endif %}; border-radius: 10px; border-left: 3px solid {% if booking.is_fully_paid %}#10b981{% else %}#f59e0b{% endif %};">
+                        <p style="font-size: 12px; color: {% if booking.is_fully_paid %}#065f46{% else %}#92400e{% endif %}; margin: 0 0 6px 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Balance</p>
+                        <p style="font-size: 22px; font-weight: 900; color: {% if booking.is_fully_paid %}#10b981{% else %}#f59e0b{% endif %}; margin: 0;">₱{{ booking.get_balance }}</p>
+                    </div>
+                </div>
+                
+                <!-- Guest Info -->
+                {% if booking.special_requests %}
+                <div style="padding: 16px; background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 10px; margin-bottom: 20px; border-left: 4px solid #f59e0b;">
+                    <p style="font-size: 12px; color: #92400e; font-weight: 700; margin: 0 0 6px 0; text-transform: uppercase; letter-spacing: 0.5px;">Special Requests</p>
+                    <p style="font-size: 14px; color: #b45309; margin: 0; line-height: 1.6;">{{ booking.special_requests }}</p>
+                </div>
+                {% endif %}
+                
+                <!-- Action Buttons -->
+                <div style="display: flex; gap: 12px;">
+                    <a href="{% url 'booking_detail' booking.id %}" class="btn-luxury btn-luxury-secondary" style="flex: 1; padding: 12px 16px; text-decoration: none; text-align: center; border: none; cursor: pointer; border-radius: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
+                        View Details
+                    </a>
+                    {% if not booking.is_fully_paid %}
+                    <a href="{% url 'add_payment' booking.id %}" class="btn-luxury btn-luxury-primary" style="flex: 1; padding: 12px 16px; text-decoration: none; text-align: center; border: none; cursor: pointer; border-radius: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
+                        Pay Now
+                    </a>
+                    {% endif %}
+                    {% if booking.status in 'pending,confirmed' %}
+                    <a href="{% url 'cancel_booking' booking.id %}" class="btn-luxury btn-luxury-danger" style="flex: 1; padding: 12px 16px; text-decoration: none; text-align: center; border: none; cursor: pointer; border-radius: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);" onclick="return confirm('Are you sure you want to cancel this booking?')">
+                        Cancel
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 80px 20px; background: white; border-radius: 16px; animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.3s backwards;">
+        <div style="font-size: 80px; margin-bottom: 16px;">🏨</div>
+        <h3 style="font-size: 20px; font-weight: 600; color: #1e293b; margin-bottom: 8px;">No Bookings Yet</h3>
+        <p style="color: #64748b; margin-bottom: 24px;">Start exploring and make your first booking today!</p>
+        <a href="{% url 'rooms' %}" class="btn-luxury btn-luxury-primary" style="padding: 14px 28px; text-decoration: none; border: none; cursor: pointer; border-radius: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; display: inline-block; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
+            View Available Rooms
+        </a>
+    </div>
+    {% endif %}
+    {% endwith %}
+</div>
+{% endblock %}

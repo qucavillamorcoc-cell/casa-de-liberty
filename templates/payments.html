@@ -1,0 +1,452 @@
+{% extends "base_dashboard.html" %}
+{% block title %}Payments - Casa de Liberty{% endblock %}
+
+{% block content %}
+<style>
+    .tenant-payments .tp-hero {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .tenant-payments .tp-hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+            radial-gradient(circle at 12% 20%, rgba(59, 130, 246, 0.18) 0, rgba(59, 130, 246, 0) 46%),
+            radial-gradient(circle at 88% 16%, rgba(124, 58, 237, 0.16) 0, rgba(124, 58, 237, 0) 48%);
+        pointer-events: none;
+    }
+
+    .tenant-payments .tp-hero-grid {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 16px;
+        align-items: start;
+    }
+
+    .tenant-payments .tp-hero-main {
+        display: grid;
+        gap: 14px;
+    }
+
+    .tenant-payments .tp-overline {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    .tenant-payments .tp-hero-title {
+        margin: 0;
+        color: var(--text-primary);
+        font-size: clamp(24px, 2.3vw, 34px);
+        line-height: 1.08;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+    }
+
+    .tenant-payments .tp-hero-copy {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 14px;
+        line-height: 1.5;
+        max-width: 56ch;
+    }
+
+    .tenant-payments .tp-hero-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .tenant-payments .tp-status-list {
+        display: grid;
+        gap: 10px;
+    }
+
+    .tenant-payments .tp-status-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.08);
+        background: rgba(148, 163, 184, 0.03);
+    }
+
+    .tenant-payments .tp-status-label {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .tenant-payments .tp-status-value {
+        margin: 0;
+        color: var(--text-primary);
+        font-size: 14px;
+        font-weight: 800;
+    }
+
+    .tenant-payments .tp-stats {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .tenant-payments .tp-kpi-accent {
+        color: #93c5fd;
+    }
+
+    html:not(.dark-mode) .tenant-payments .tp-kpi-accent {
+        color: #1d4ed8;
+    }
+
+    .tenant-payments .tp-kpi-success {
+        color: #34d399;
+    }
+
+    html:not(.dark-mode) .tenant-payments .tp-kpi-success {
+        color: #047857;
+    }
+
+    .tenant-payments .tp-kpi-warn {
+        color: #fbbf24;
+    }
+
+    html:not(.dark-mode) .tenant-payments .tp-kpi-warn {
+        color: #b45309;
+    }
+
+    .tenant-payments .tp-kpi-danger {
+        color: #fda4af;
+    }
+
+    html:not(.dark-mode) .tenant-payments .tp-kpi-danger {
+        color: #b91c1c;
+    }
+
+    .tenant-payments .tp-upcoming-grid {
+        display: grid;
+        gap: 12px;
+    }
+
+    .tenant-payments .tp-upcoming-card {
+        padding: 14px;
+        border-radius: 14px;
+        border: 1px solid rgba(148, 163, 184, 0.08);
+        background: rgba(148, 163, 184, 0.03);
+        display: grid;
+        gap: 10px;
+    }
+
+    .tenant-payments .tp-upcoming-top {
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .tenant-payments .tp-upcoming-unit {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .tenant-payments .tp-upcoming-amount {
+        margin: 4px 0 0;
+        color: var(--text-primary);
+        font-size: 22px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+    }
+
+    .tenant-payments .tp-upcoming-meta {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 12px;
+    }
+
+    .tenant-payments .tp-inline-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 10px;
+    }
+
+    .tenant-payments .tp-inline-list li {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.08);
+        background: rgba(148, 163, 184, 0.03);
+    }
+
+    .tenant-payments .tp-inline-list span:first-child {
+        color: var(--text-secondary);
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .tenant-payments .tp-inline-list span:last-child {
+        color: var(--text-primary);
+        font-size: 13px;
+        font-weight: 800;
+    }
+
+    .tenant-payments .tp-transactions td strong {
+        color: var(--text-primary);
+        font-weight: 800;
+    }
+
+    .tenant-payments .tp-method {
+        color: var(--text-secondary);
+    }
+
+    .tenant-payments .tp-row-id {
+        color: var(--text-primary);
+        font-weight: 700;
+    }
+
+    @media (max-width: 1024px) {
+        .tenant-payments .tp-hero-grid,
+        .tenant-payments .tp-stats {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .tenant-payments .tp-hero-grid,
+        .tenant-payments .tp-stats {
+            grid-template-columns: 1fr;
+        }
+
+        .tenant-payments .tp-hero-actions {
+            display: grid;
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<section class="tenant-payments portal-stack">
+    <div class="page-header">
+        <h1 class="page-title">Payments</h1>
+        <div class="user-profile">
+            <div class="user-info" style="text-align: right;">
+                <p>{{ request.user.username }}</p>
+                <span>Tenant</span>
+            </div>
+            <div class="user-avatar">{{ request.user.username.0|upper }}</div>
+        </div>
+    </div>
+    <p class="page-subtitle">Track rent dues, recent payment activity, and upcoming due dates across your active leases.</p>
+
+    <div class="portal-panel tp-hero">
+        <div class="portal-panel-body">
+            <div class="tp-hero-grid">
+                <div class="tp-hero-main">
+                    <div>
+                        <p class="tp-overline">Payment Overview</p>
+                        <h2 class="tp-hero-title">Outstanding Balance: &#8369;{{ outstanding_balance|floatformat:2 }}</h2>
+                    </div>
+                    <p class="tp-hero-copy">
+                        Keep your account current by paying upcoming dues before their due date. Your payment history and lease totals are shown below for quick review.
+                    </p>
+                    <div class="tp-hero-actions">
+                        <a href="#upcoming-payments" class="portal-link-btn primary">Pay Upcoming Due</a>
+                        <a href="#payment-history-table" class="portal-link-btn">View Transactions</a>
+                        <a href="{% url 'my_leases' %}" class="portal-link-btn">Open My Leases</a>
+                    </div>
+                </div>
+
+                <div class="tp-status-list">
+                    <div class="tp-status-item">
+                        <p class="tp-status-label">Active Leases</p>
+                        <p class="tp-status-value">{{ active_leases_count }}</p>
+                    </div>
+                    <div class="tp-status-item">
+                        <p class="tp-status-label">Unpaid Due Dates</p>
+                        <p class="tp-status-value">{{ all_unpaid_dues_count }}</p>
+                    </div>
+                    <div class="tp-status-item">
+                        <p class="tp-status-label">Paid Transactions</p>
+                        <p class="tp-status-value">{{ paid_payments_count }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="portal-grid-3 tp-stats">
+        <div class="portal-kpi">
+            <p class="portal-kpi-label">Total Lease Value</p>
+            <p class="portal-kpi-value tp-kpi-accent">&#8369;{{ total_due|floatformat:2 }}</p>
+            <p class="portal-kpi-note">Combined lease totals</p>
+        </div>
+        <div class="portal-kpi">
+            <p class="portal-kpi-label">Total Paid</p>
+            <p class="portal-kpi-value tp-kpi-success">&#8369;{{ total_paid|floatformat:2 }}</p>
+            <p class="portal-kpi-note">Confirmed rent payments</p>
+        </div>
+        <div class="portal-kpi">
+            <p class="portal-kpi-label">Upcoming (6 Months)</p>
+            <p class="portal-kpi-value tp-kpi-warn">&#8369;{{ upcoming_due_total|floatformat:2 }}</p>
+            <p class="portal-kpi-note">{{ rent_due_dates|length }} due item{{ rent_due_dates|length|pluralize }}</p>
+        </div>
+        <div class="portal-kpi">
+            <p class="portal-kpi-label">Outstanding</p>
+            <p class="portal-kpi-value tp-kpi-danger">&#8369;{{ outstanding_balance|floatformat:2 }}</p>
+            <p class="portal-kpi-note">All unpaid due dates</p>
+        </div>
+    </div>
+
+    <div class="portal-grid-2">
+        <div class="portal-panel" id="upcoming-payments">
+            <div class="portal-panel-header">
+                <div>
+                    <h2 class="portal-panel-title">Upcoming Payments</h2>
+                    <p class="portal-panel-subtitle">Unpaid dues in the next six months</p>
+                </div>
+                <span class="portal-badge {% if rent_due_dates %}portal-badge-warn{% else %}portal-badge-success{% endif %}">
+                    {% if rent_due_dates %}{{ rent_due_dates|length }} upcoming{% else %}No upcoming dues{% endif %}
+                </span>
+            </div>
+            <div class="portal-panel-body">
+                {% if rent_due_dates %}
+                    <div class="tp-upcoming-grid">
+                        {% for due_date in rent_due_dates %}
+                            <div class="tp-upcoming-card">
+                                <div class="tp-upcoming-top">
+                                    <div>
+                                        <p class="tp-upcoming-unit">
+                                            Apartment {% if due_date.lease and due_date.lease.apartment %}{{ due_date.lease.apartment.unit_number }}{% else %}N/A{% endif %}
+                                        </p>
+                                        <p class="tp-upcoming-amount">&#8369;{{ due_date.amount_due|floatformat:2 }}</p>
+                                    </div>
+                                    <span class="portal-badge portal-badge-warn">Due</span>
+                                </div>
+                                <p class="tp-upcoming-meta">Due date: {{ due_date.due_date|date:"M d, Y" }}</p>
+                                {% if due_date.lease %}
+                                    <a href="{% url 'add_payment' due_date.lease.id %}" class="portal-link-btn primary">Pay Now</a>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="portal-empty">
+                        <h3>You're up to date</h3>
+                        <p>No unpaid rent dues were found in the next six months.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="portal-panel">
+            <div class="portal-panel-header">
+                <div>
+                    <h2 class="portal-panel-title">Payment Summary</h2>
+                    <p class="portal-panel-subtitle">Quick snapshot of your account status</p>
+                </div>
+                {% if all_unpaid_dues_count > 0 %}
+                    <span class="portal-badge portal-badge-danger">{{ all_unpaid_dues_count }} unpaid</span>
+                {% else %}
+                    <span class="portal-badge portal-badge-success">No unpaid items</span>
+                {% endif %}
+            </div>
+            <div class="portal-panel-body">
+                <ul class="tp-inline-list">
+                    <li>
+                        <span>Leases on file</span>
+                        <span>{{ leases|length }}</span>
+                    </li>
+                    <li>
+                        <span>Payment records</span>
+                        <span>{{ rent_payments|length }}</span>
+                    </li>
+                    <li>
+                        <span>Outstanding balance</span>
+                        <span>&#8369;{{ outstanding_balance|floatformat:2 }}</span>
+                    </li>
+                    <li>
+                        <span>Upcoming due total</span>
+                        <span>&#8369;{{ upcoming_due_total|floatformat:2 }}</span>
+                    </li>
+                </ul>
+                <div style="margin-top: 12px;">
+                    <p class="portal-note">Use the transaction table below to verify payment methods, dates, and status.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="portal-panel" id="payment-history-table">
+        <div class="portal-panel-header">
+            <div>
+                <h2 class="portal-panel-title">Payment Transactions</h2>
+                <p class="portal-panel-subtitle">All recorded rent payments linked to your leases</p>
+            </div>
+            <span class="portal-badge portal-badge-info">{{ rent_payments|length }} record{{ rent_payments|length|pluralize }}</span>
+        </div>
+        <div class="portal-panel-body" style="padding-top: 0;">
+            {% if rent_payments %}
+                <div class="table-wrapper">
+                    <table class="portal-table tp-transactions">
+                        <thead>
+                            <tr>
+                                <th>Lease</th>
+                                <th>Apartment</th>
+                                <th>Amount</th>
+                                <th>Method</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in rent_payments %}
+                                <tr>
+                                    <td class="tp-row-id">Lease #{{ payment.lease.id }}</td>
+                                    <td>
+                                        {% if payment.lease.apartment %}
+                                            Unit {{ payment.lease.apartment.unit_number }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                    <td><strong>&#8369;{{ payment.amount|floatformat:2 }}</strong></td>
+                                    <td class="tp-method">{{ payment.get_payment_method_display }}</td>
+                                    <td>{{ payment.payment_date|date:"M d, Y" }}</td>
+                                    <td>
+                                        {% if payment.payment_status == 'paid' %}
+                                            <span class="portal-badge portal-badge-success">Paid</span>
+                                        {% elif payment.payment_status == 'pending' %}
+                                            <span class="portal-badge portal-badge-warn">Pending</span>
+                                        {% else %}
+                                            <span class="portal-badge portal-badge-danger">{{ payment.get_payment_status_display|default:payment.payment_status }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="portal-empty">
+                    <h3>No payment transactions yet</h3>
+                    <p>Your completed payment records will appear here after your first payment is processed.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,14 @@
+<html>
+  <body style="font-family: Arial, sans-serif; color: #111827;">
+    <h2>New Maintenance Request #{{ maintenance.id }}</h2>
+    <p>A new maintenance request has been submitted.</p>
+    <p><strong>Tenant:</strong> {{ maintenance.user.get_full_name|default:maintenance.user.username }} ({{ maintenance.user.email }})</p>
+    <p><strong>Room:</strong> {{ maintenance.room.room_number }}</p>
+    <p><strong>Type:</strong> {{ maintenance.get_maintenance_type_display }}</p>
+    <p><strong>Priority:</strong> {{ maintenance.get_priority_display }}</p>
+    <p><strong>Submitted:</strong> {{ maintenance.created_at|date:"M d, Y H:i" }}</p>
+    <hr />
+    <p><strong>Description</strong></p>
+    <p>{{ maintenance.description }}</p>
+  </body>
+</html>

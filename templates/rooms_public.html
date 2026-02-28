@@ -1,0 +1,209 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Available Rooms - Casa de Liberty</title>
+    <!-- PUBLIC APARTMENTS PAGE - Browse available units (no login required)
+         Features: List all apartments with photos/details, search/filter, view details
+         Call to action: "View Details" → apartment_detail page, "Book Now" → login/lease form
+         Navigation: Back to home, dark mode toggle, login/register links -->
+    <!-- Global Theme Manager - Load early to prevent theme flashing -->
+    <script src="{% static 'js/theme.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">>
+</head>
+<body style="background: #f1f5f9;">
+
+<!-- Top Navigation -->
+<div style="background: white; border-bottom: 1px solid #e2e8f0; padding: 16px 40px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="width: 40px; height: 40px; background: #f59e0b; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;">🏨</div>
+        <div>
+            <h2 style="margin: 0; font-size: 18px; font-weight: 700; color: #1e293b;">Casa de Liberty</h2>
+            <p style="margin: 0; font-size: 12px; color: #64748b;">Premium Living Spaces</p>
+        </div>
+    </div>
+    <div style="display: flex; gap: 12px; align-items: center;">
+        <!-- Dark Mode Toggle -->
+        <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 8px; background: white;">
+            <input type="checkbox" id="darkModeToggle" style="display: none;">
+            <label for="darkModeToggle" style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0;">
+                <span style="font-size: 16px;">🌙</span>
+                <span style="font-size: 12px; color: #64748b;">Dark</span>
+            </label>
+        </div>
+        <a href="{% url 'home' %}" class="btn btn-secondary" style="padding: 10px 20px;">← Back to Home</a>
+        {% if user.is_authenticated %}
+            <a href="{% url 'dashboard' %}" class="btn btn-primary" style="padding: 10px 20px;">Go to Dashboard</a>
+        {% else %}
+            <a href="{% url 'login' %}" class="btn btn-secondary" style="padding: 10px 20px;">Log In</a>
+            <a href="{% url 'register' %}" class="btn btn-primary" style="padding: 10px 20px;">Sign Up</a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Main Content -->
+<div style="max-width: 1400px; margin: 0 auto; padding: 40px;">
+    
+    <!-- Page Header -->
+    <div style="margin-bottom: 30px;">
+        <h1 style="font-size: 32px; font-weight: 700; color: #1e293b; margin: 0 0 8px 0;">Available Rooms</h1>
+        <p style="color: #64748b; font-size: 16px; margin: 0;">Browse our selection of premium rooms</p>
+    </div>
+
+    <!-- Search Filter Card -->
+    <div style="background: white; border-radius: 12px; padding: 24px; border: 1px solid #e2e8f0; margin-bottom: 30px;">
+        <h3 style="font-size: 18px; font-weight: 600; margin: 0 0 20px 0;">Search Availability</h3>
+        <form method="get" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 16px; align-items: end;">
+            <div style="margin: 0;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Check-in Date</label>
+                <input type="date" name="check_in" value="{{ check_in }}" required style="width: 100%; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
+            </div>
+            <div style="margin: 0;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Check-out Date</label>
+                <input type="date" name="check_out" value="{{ check_out }}" required style="width: 100%; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
+            </div>
+            <button type="submit" class="btn btn-primary" style="height: 42px; padding: 0 24px;">
+                Search Rooms
+            </button>
+        </form>
+        
+        {% if filtered %}
+        <div style="margin-top: 16px; padding: 12px 16px; background: #d1fae5; border-radius: 8px; border-left: 4px solid #10b981; display: flex; justify-content: space-between; align-items: center;">
+            <p style="margin: 0; color: #065f46; font-size: 14px; font-weight: 500;">
+                ✅ Showing available rooms from {{ check_in }} to {{ check_out }}
+            </p>
+            <a href="{% url 'rooms' %}" style="color: #047857; font-weight: 600; text-decoration: none;">Clear</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Rooms Grid -->
+    {% if rooms %}
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 24px;">
+        {% for room in rooms %}
+        <div style="background: white; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; transition: all 0.3s ease;">
+            <!-- Room Image -->
+            <div style="height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; font-size: 64px;">
+                🏨
+            </div>
+            
+            <!-- Room Content -->
+            <div style="padding: 24px;">
+                <!-- Room Header -->
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                    <div>
+                        <h3 style="font-size: 20px; font-weight: 600; color: #1e293b; margin: 0 0 4px 0;">Room {{ room.room_number }}</h3>
+                        <p style="font-size: 13px; color: #64748b; margin: 0;">{{ room.get_room_type_display }}</p>
+                    </div>
+                    <span class="badge badge-success">Available</span>
+                </div>
+                
+                <!-- Price -->
+                <div style="margin: 16px 0;">
+                    <span style="font-size: 28px; font-weight: 700; color: #3b82f6;">₱{{ room.price_per_night }}</span>
+                    <span style="font-size: 14px; color: #64748b;">/night</span>
+                </div>
+                
+                <!-- Room Details -->
+                <div style="padding: 12px 0; margin: 16px 0; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9;">
+                    <div style="display: flex; align-items: center; gap: 8px; color: #64748b; font-size: 14px;">
+                        <span>👥</span>
+                        <span>Up to {{ room.capacity }} guests</span>
+                    </div>
+                </div>
+                
+                <!-- Description -->
+                <p style="font-size: 14px; color: #475569; line-height: 1.6; margin: 0 0 12px 0;">{{ room.description }}</p>
+                
+                <!-- Amenities -->
+                <div style="background: #f8fafc; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                    <p style="font-size: 12px; color: #64748b; margin: 0 0 4px 0; font-weight: 600;">AMENITIES</p>
+                    <p style="font-size: 13px; color: #475569; margin: 0;">{{ room.amenities }}</p>
+                </div>
+                
+                <!-- Book Button -->
+                {% if user.is_authenticated %}
+                    <a href="{% url 'book_room' room.id %}{% if check_in and check_out %}?check_in={{ check_in }}&check_out={{ check_out }}{% endif %}" style="text-decoration: none;">
+                        <button class="btn btn-primary" style="width: 100%;">Book This Room</button>
+                    </a>
+                {% else %}
+                    <a href="{% url 'login' %}?next={% url 'book_room' room.id %}" style="text-decoration: none;">
+                        <button class="btn btn-primary" style="width: 100%;">Log In to Book</button>
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="background: white; border-radius: 12px; padding: 80px 20px; border: 1px solid #e2e8f0; text-align: center;">
+        <div style="font-size: 64px; margin-bottom: 16px;">🏨</div>
+        <h3 style="font-size: 20px; font-weight: 600; color: #1e293b; margin: 0 0 8px 0;">
+            {% if filtered %}No Rooms Available{% else %}No Rooms Found{% endif %}
+        </h3>
+        <p style="color: #64748b; margin: 0;">
+            {% if filtered %}Please try different dates{% else %}Check back later for available rooms{% endif %}
+        </p>
+    </div>
+    {% endif %}
+
+</div>
+
+<script>
+    // Date validation
+    const today = new Date().toISOString().split('T')[0];
+    const checkInInput = document.querySelector('input[name="check_in"]');
+    const checkOutInput = document.querySelector('input[name="check_out"]');
+    
+    if (checkInInput) checkInInput.min = today;
+    if (checkOutInput) checkOutInput.min = today;
+    
+    if (checkInInput) {
+        checkInInput.addEventListener('change', function() {
+            const checkinDate = new Date(this.value);
+            checkinDate.setDate(checkinDate.getDate() + 1);
+            checkOutInput.min = checkinDate.toISOString().split('T')[0];
+        });
+    }
+
+    // Page Transition Animations
+    document.addEventListener('DOMContentLoaded', function() {
+        const roomsContainer = document.querySelector('.rooms-container') || document.querySelector('main') || document.body;
+        const roomCards = document.querySelectorAll('.room-card');
+        
+        if (roomsContainer) roomsContainer.style.animation = 'pageTransitionIn 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+        
+        roomCards.forEach((card, index) => {
+            card.style.animation = `pageTransitionIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) ${100 + index * 80}ms backwards`;
+        });
+    });
+</script>
+
+<style>
+    @keyframes pageTransitionIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes pageTransitionOut {
+        from {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        to {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+    }
+</style>
+
+</body>
+</html>

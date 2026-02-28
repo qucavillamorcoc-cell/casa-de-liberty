@@ -1,0 +1,91 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}Booking Confirmed - Casa de Liberty{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Booking Confirmation</h1>
+    <div class="user-profile">
+        <div class="user-info" style="text-align: right;">
+            <p>{{ request.user.username }}</p>
+            <span>Tenant</span>
+        </div>
+        <div class="user-avatar">{{ request.user.username.0|upper }}</div>
+    </div>
+</div>
+
+<!-- Success Message -->
+<div style="background: #d1fae5; border: 2px solid #10b981; border-radius: 12px; padding: 40px; text-align: center; margin-bottom: 30px;">
+    <div style="font-size: 64px; margin-bottom: 16px;">✅</div>
+    <h2 style="font-size: 28px; font-weight: 700; color: #065f46; margin: 0 0 8px 0;">Booking Confirmed!</h2>
+    <p style="font-size: 16px; color: #047857; margin: 0;">Your reservation has been successfully created.</p>
+</div>
+
+<!-- Booking Details -->
+<div class="section">
+    <h3 style="font-size: 18px; font-weight: 600; margin: 0 0 24px 0;">Booking Details</h3>
+    
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 24px;">
+        <div style="background: #f8fafc; padding: 20px; border-radius: 10px;">
+            <p style="font-size: 12px; color: #64748b; margin: 0 0 6px 0; font-weight: 600;">BOOKING ID</p>
+            <p style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0;">#{{ booking.id }}</p>
+        </div>
+        
+        <div style="background: #f8fafc; padding: 20px; border-radius: 10px;">
+            <p style="font-size: 12px; color: #64748b; margin: 0 0 6px 0; font-weight: 600;">STATUS</p>
+            <span class="badge badge-success" style="font-size: 14px; padding: 6px 16px;">{{ booking.get_status_display }}</span>
+        </div>
+    </div>
+    
+    <div style="border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; margin-bottom: 24px;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <tbody>
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                    <td style="padding: 16px; font-weight: 600; color: #64748b; width: 200px;">Room</td>
+                    <td style="padding: 16px; color: #1e293b; font-weight: 600;">{{ booking.room.room_number }} ({{ booking.room.get_room_type_display }})</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                    <td style="padding: 16px; font-weight: 600; color: #64748b;">Guest Name</td>
+                    <td style="padding: 16px; color: #1e293b;">{{ booking.user.username }}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                    <td style="padding: 16px; font-weight: 600; color: #64748b;">Check-in Date</td>
+                    <td style="padding: 16px; color: #1e293b;">{{ booking.check_in }}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                    <td style="padding: 16px; font-weight: 600; color: #64748b;">Check-out Date</td>
+                    <td style="padding: 16px; color: #1e293b;">{{ booking.check_out }}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                    <td style="padding: 16px; font-weight: 600; color: #64748b;">Number of Nights</td>
+                    <td style="padding: 16px; color: #1e293b;">{{ booking.calculate_nights }}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                    <td style="padding: 16px; font-weight: 600; color: #64748b;">Number of Guests</td>
+                    <td style="padding: 16px; color: #1e293b;">{{ booking.guests }}</td>
+                </tr>
+                {% if booking.special_requests %}
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                    <td style="padding: 16px; font-weight: 600; color: #64748b;">Special Requests</td>
+                    <td style="padding: 16px; color: #1e293b; font-style: italic;">{{ booking.special_requests }}</td>
+                </tr>
+                {% endif %}
+                <tr style="background: #f0f9ff;">
+                    <td style="padding: 20px; font-weight: 700; color: #1e293b; font-size: 16px;">Total Amount</td>
+                    <td style="padding: 20px; font-weight: 700; color: #3b82f6; font-size: 24px;">₱{{ booking.total_price }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Actions -->
+    <div style="display: flex; gap: 12px; justify-content: center;">
+        <a href="{% url 'dashboard' %}" class="btn btn-primary">
+            View My Leases
+        </a>
+        <a href="{% url 'apartments' %}" class="btn btn-secondary">
+            Browse More Apartments
+        </a>
+    </div>
+</div>
+{% endblock %}

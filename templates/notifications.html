@@ -1,0 +1,331 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}Notifications - Casa de Liberty{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h1 class="page-title">Notifications</h1>
+    <div class="user-profile">
+        <div class="user-info" style="text-align: right;">
+            <p>{{ request.user.username }}</p>
+            <span>Tenant</span>
+        </div>
+        <div class="user-avatar">{{ request.user.username.0|upper }}</div>
+    </div>
+</div>
+<p class="page-subtitle">View updates for your leases, payments, and maintenance requests.</p>
+
+<div class="section">
+    {% if notifications %}
+        <div style="display: grid; gap: 16px;">
+            {% for note in notifications %}
+            <!-- NOTIFICATION CARD - clickable to view full message -->
+            <div 
+                class="notification-card" 
+                data-notification-id="{{ note.id }}"
+                data-is-read="{% if note.is_read %}true{% else %}false{% endif %}"
+                data-hover-effect="card"
+                style="
+                    background: var(--card-bg);
+                    padding: 14px;
+                    border-radius: 12px;
+                    border-left: 6px solid {% if note.notification_type == 'lease' %}#3b82f6{% elif note.notification_type == 'payment' %}#10b981{% else %}#f59e0b{% endif %};
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    {% if note.is_read %}opacity: 0.7;{% endif %}
+                "
+                onclick="openNotificationModal({{ note.id }}, '{{ note.title }}', '{{ note.message|escapejs }}', '{{ note.created_at|date:'M d, Y h:i A' }}')"
+            >
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div style="flex: 1;">
+                        <!-- NOTIFICATION TITLE and message preview -->
+                        <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: var(--text-primary);">
+                            {{ note.title }}
+                        </h3>
+                        <p style="margin: 6px 0; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            {{ note.message|truncatewords:20 }}
+                        </p>
+                        <small style="color: var(--text-tertiary);">
+                            {{ note.created_at|date:"M d, Y h:i A" }}
+                        </small>
+                    </div>
+                    {% if not note.is_read %}
+                        <!-- NEW badge for unread notifications -->
+                        <span class="badge badge-success" style="margin-left: 16px; white-space: nowrap;">New</span>
+                    {% else %}
+                        <!-- Read indicator (small dot) for already-read notifications -->
+                        <span style="display: inline-block; width: 8px; height: 8px; background: #ef4444; border-radius: 50%; margin-left: 16px; margin-top: 4px;"></span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div style="text-align: center; padding: 40px;">
+            <div style="font-size: 56px; margin-bottom: 6px;">🔔</div>
+            <h3 style="color: var(--text-primary); margin-bottom: 4px;">No notifications yet</h3>
+            <p style="color: var(--text-secondary); margin: 0;">We'll notify you when something happens.</p>
+    {% endif %}
+</div>
+
+<!-- Notification Modal -->
+<div id="notificationModal" class="notification-modal" style="display: none;">
+    <div class="modal-overlay" onclick="closeNotificationModal()"></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalTitle" style="margin: 0; color: var(--text-primary);">Notification</h2>
+            <button class="modal-close-btn" onclick="closeNotificationModal()">✕</button>
+        </div>
+        <div class="modal-body">
+            <p id="modalMessage" style="color: var(--text-primary); line-height: 1.6; margin: 0;"></p>
+            <small id="modalDate" style="color: var(--text-secondary); display: block; margin-top: 16px;"></small>
+        </div>
+        <div class="modal-footer">
+            <button onclick="closeNotificationModal()" class="btn btn-primary">Got It</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Override portal-shell direct-child width constraints so the popup
+       can cover and center against the full viewport. */
+    body.portal-shell .main-content > .notification-modal {
+        position: fixed;
+        inset: 0;
+        width: 100vw !important;
+        max-width: none !important;
+        height: 100vh;
+        margin: 0 !important;
+        padding: 24px;
+        box-sizing: border-box;
+        z-index: 3000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .notification-modal .modal-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        cursor: pointer;
+    }
+
+    .notification-modal .modal-content {
+        position: relative;
+        background: var(--card-bg);
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        max-width: 520px;
+        width: 90%;
+        max-height: min(80vh, 560px);
+        overflow: hidden;
+        z-index: 1001;
+        animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .notification-modal .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 24px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .notification-modal .modal-close-btn {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: var(--text-secondary);
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .notification-modal .modal-close-btn:hover {
+        background: var(--bg-tertiary);
+        color: var(--text-primary);
+    }
+
+    .notification-modal .modal-body {
+        padding: 24px;
+        max-height: calc(min(80vh, 560px) - 150px);
+        overflow-y: auto;
+    }
+
+    .notification-modal .modal-footer {
+        padding: 20px 24px;
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+    }
+
+    @media (max-width: 640px) {
+        body.portal-shell .main-content > .notification-modal {
+            padding: 14px;
+        }
+
+        .notification-modal .modal-content {
+            width: 100%;
+            max-width: none;
+            border-radius: 14px;
+        }
+
+        .notification-modal .modal-header,
+        .notification-modal .modal-body,
+        .notification-modal .modal-footer {
+            padding-left: 16px;
+            padding-right: 16px;
+        }
+
+        .notification-modal .modal-footer .btn {
+            width: 100%;
+        }
+    }
+
+    .notification-card {
+        opacity: 1;
+    }
+
+    .notification-card.read {
+        opacity: 0.7;
+    }
+
+    .badge-success {
+        background: #d1fae5;
+        color: #059669;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    html.dark-mode .badge-success {
+        background: rgba(16, 185, 129, 0.2);
+        color: #6ee7b7;
+    }
+</style>
+
+<script>
+let currentNotificationId = null;
+
+function openNotificationModal(notificationId, title, message, date) {
+    currentNotificationId = notificationId;
+    
+    // Set modal content
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('modalMessage').textContent = message;
+    document.getElementById('modalDate').textContent = date;
+    
+    // Show modal
+    document.getElementById('notificationModal').style.display = 'flex';
+    
+    // Mark as read
+    markNotificationAsRead(notificationId);
+}
+
+function closeNotificationModal() {
+    document.getElementById('notificationModal').style.display = 'none';
+    currentNotificationId = null;
+}
+
+function markNotificationAsRead(notificationId) {
+    // Make API call to mark as read
+    fetch(`/api/notification/${notificationId}/mark-read/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update UI
+            const card = document.querySelector(`[data-notification-id="${notificationId}"]`);
+            if (card) {
+                card.dataset.isRead = 'true';
+                card.classList.add('read');
+                
+                // Remove "New" badge
+                const badge = card.querySelector('.badge-success');
+                if (badge) {
+                    badge.remove();
+                }
+                
+                // Add read indicator (red dot)
+                const statusIndicator = document.createElement('span');
+                statusIndicator.style.cssText = 'display: inline-block; width: 8px; height: 8px; background: #ef4444; border-radius: 50%; margin-left: 16px; margin-top: 4px;';
+                const header = card.querySelector('div[style*="display: flex"]');
+                if (header && !card.querySelector('[style*="background: #ef4444"]')) {
+                    header.appendChild(statusIndicator);
+                }
+            }
+            
+            // Update notification count
+            updateNotificationIndicator();
+        }
+    })
+    .catch(error => console.error('Error marking notification as read:', error));
+}
+
+function getCSRFToken() {
+    const name = 'csrftoken';
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function updateNotificationIndicator() {
+    const notificationDot = document.getElementById('notificationDot');
+    if (notificationDot) {
+        fetch('/api/notification-count/')
+            .then(response => response.json())
+            .then(data => {
+                if (data.count > 0) {
+                    notificationDot.classList.add('show');
+                } else {
+                    notificationDot.classList.remove('show');
+                }
+            })
+            .catch(error => console.error('Error updating notification count:', error));
+    }
+}
+
+// Close modal on Escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeNotificationModal();
+    }
+});
+</script>
+{% endblock %}

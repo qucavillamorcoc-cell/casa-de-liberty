@@ -1,0 +1,156 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}Book Room {{ room.room_number }} - Casa de Liberty{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Book Room {{ room.room_number }}</h1>
+    <div class="user-profile">
+        <div class="user-info" style="text-align: right;">
+            <p>{{ request.user.username }}</p>
+            <span>Tenant</span>
+        </div>
+        <div class="user-avatar">{{ request.user.username.0|upper }}</div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+    <!-- Room Details -->
+    <div class="section">
+        <h3 style="font-size: 18px; font-weight: 600; margin: 0 0 20px 0;">Room Details</h3>
+        
+        <!-- Room Image -->
+        <div style="height: 250px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; font-size: 80px; border-radius: 12px; margin-bottom: 24px;">
+            🏨
+        </div>
+        
+        <!-- Room Info -->
+        <div style="display: grid; gap: 16px;">
+            <div style="background: #f8fafc; padding: 16px; border-radius: 8px;">
+                <p style="font-size: 12px; color: #64748b; margin: 0 0 4px 0; font-weight: 600;">ROOM TYPE</p>
+                <p style="font-size: 16px; font-weight: 600; color: #1e293b; margin: 0;">{{ room.get_room_type_display }}</p>
+            </div>
+            
+            <div style="background: #f8fafc; padding: 16px; border-radius: 8px;">
+                <p style="font-size: 12px; color: #64748b; margin: 0 0 4px 0; font-weight: 600;">PRICE PER NIGHT</p>
+                <p style="font-size: 24px; font-weight: 700; color: #3b82f6; margin: 0;">₱{{ room.price_per_night }}</p>
+            </div>
+            
+            <div style="background: #f8fafc; padding: 16px; border-radius: 8px;">
+                <p style="font-size: 12px; color: #64748b; margin: 0 0 4px 0; font-weight: 600;">MAXIMUM GUESTS</p>
+                <p style="font-size: 16px; font-weight: 600; color: #1e293b; margin: 0;">👥 {{ room.capacity }} guests</p>
+            </div>
+            
+            <div style="background: #f8fafc; padding: 16px; border-radius: 8px;">
+                <p style="font-size: 12px; color: #64748b; margin: 0 0 8px 0; font-weight: 600;">DESCRIPTION</p>
+                <p style="font-size: 14px; color: #475569; margin: 0; line-height: 1.6;">{{ room.description }}</p>
+            </div>
+            
+            <div style="background: #f8fafc; padding: 16px; border-radius: 8px;">
+                <p style="font-size: 12px; color: #64748b; margin: 0 0 8px 0; font-weight: 600;">AMENITIES</p>
+                <p style="font-size: 14px; color: #475569; margin: 0;">{{ room.amenities }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Booking Form -->
+    <div class="section">
+        <h3 style="font-size: 18px; font-weight: 600; margin: 0 0 20px 0;">Booking Information</h3>
+        
+        <form method="post" id="bookingForm">
+            {% csrf_token %}
+            
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Check-in Date</label>
+                <input type="date" name="check_in" id="check_in" required style="width: 100%; padding: 12px 14px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Check-out Date</label>
+                <input type="date" name="check_out" id="check_out" required style="width: 100%; padding: 12px 14px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
+            </div>
+            
+            <!-- Price Calculation -->
+            <div id="priceCalculation" style="background: #f0f9ff; padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 2px solid #3b82f6; display: none;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                    <span style="color: #1e40af; font-weight: 500;">Number of Nights:</span>
+                    <span style="color: #1e40af; font-weight: 700;" id="nightsCount">0</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding-top: 12px; border-top: 1px solid #bfdbfe;">
+                    <span style="color: #1e40af; font-weight: 600; font-size: 16px;">Total Price:</span>
+                    <span style="color: #1e40af; font-weight: 700; font-size: 20px;">₱<span id="totalPrice">0</span></span>
+                </div>
+                <div id="availabilityMessage" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #bfdbfe;"></div>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Number of Guests</label>
+                <input type="number" name="guests" id="guests" min="1" max="{{ room.capacity }}" required value="1" style="width: 100%; padding: 12px 14px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
+            </div>
+            
+            <div style="margin-bottom: 24px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Special Requests (Optional)</label>
+                <textarea name="special_requests" id="special_requests" rows="4" placeholder="Any special requirements or requests..." style="width: 100%; padding: 12px 14px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; resize: vertical; font-family: inherit;"></textarea>
+            </div>
+            
+            <button type="submit" id="submitBtn" class="btn btn-primary" style="width: 100%; padding: 14px;">
+                Confirm Booking
+            </button>
+        </form>
+        
+        <div style="margin-top: 16px; text-align: center;">
+            <a href="{% url 'apartments' %}" style="color: #64748b; font-size: 14px; text-decoration: none;">← Cancel and go back</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    const roomId = {{room.id }};
+    const pricePerNight = {{ room.price_per_night }};
+    const today = new Date().toISOString().split('T')[0];
+    
+    document.getElementById('check_in').min = today;
+    document.getElementById('check_out').min = today;
+    
+    document.getElementById('check_in').addEventListener('change', function() {
+        const checkinDate = new Date(this.value);
+        checkinDate.setDate(checkinDate.getDate() + 1);
+        document.getElementById('check_out').min = checkinDate.toISOString().split('T')[0];
+        checkAvailability();
+    });
+    
+    document.getElementById('check_out').addEventListener('change', checkAvailability);
+    
+    function checkAvailability() {
+        const checkIn = document.getElementById('check_in').value;
+        const checkOut = document.getElementById('check_out').value;
+        
+        if (!checkIn || !checkOut) return;
+        
+        fetch(`/check-availability/?room_id=${roomId}&check_in=${checkIn}&check_out=${checkOut}`)
+            .then(response => response.json())
+            .then(data => {
+                const calcDiv = document.getElementById('priceCalculation');
+                const submitBtn = document.getElementById('submitBtn');
+                const availMsg = document.getElementById('availabilityMessage');
+                
+                calcDiv.style.display = 'block';
+                document.getElementById('nightsCount').textContent = data.nights;
+                document.getElementById('totalPrice').textContent = data.total_price.toFixed(2);
+                
+                if (data.available) {
+                    availMsg.innerHTML = '<span style="color: #10b981; font-weight: 600;">✅ Room is available for these dates</span>';
+                    submitBtn.disabled = false;
+                    submitBtn.style.opacity = '1';
+                } else {
+                    availMsg.innerHTML = '<span style="color: #ef4444; font-weight: 600;">❌ Room is not available for these dates</span>';
+                    submitBtn.disabled = true;
+                    submitBtn.style.opacity = '0.5';
+                }
+            })
+            .catch(error => {
+                console.error('Error checking availability:', error);
+            });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,277 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}Lease #{{ lease.id }} - Casa de Liberty{% endblock %}
+
+{% block content %}
+<!-- Page header -->
+<div class="page-header">
+    <h1>Lease #{{ lease.id }}</h1>
+    <p>View lease details and payment history</p>
+</div>
+
+<!-- ===== LEASE INFORMATION SECTION ===== -->
+<!-- Shows apartment, tenant, dates, lease type, and occupants -->
+<div class="card">
+    <div class="card-header">
+        <h3>Lease Information</h3>
+        <span class="badge 
+            {% if lease.status == 'active' %}badge-success
+            {% elif lease.status == 'pending' %}badge-warning
+            {% elif lease.status == 'terminated' %}badge-danger
+            {% else %}badge-info{% endif %}">
+            {{ lease.get_status_display }}  <!-- Status badge: Active, Pending, etc -->
+        </span>
+    </div>
+    
+    <!-- Lease details in grid layout -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 24px; margin-top: 20px;">
+        <!-- Apartment details -->
+        <div>
+            <p style="color: #64748b; font-size: 13px; margin: 0 0 4px 0;">Apartment</p>
+            <p style="font-size: 18px; font-weight: 600; margin: 0;">Unit {{ lease.apartment.unit_number }}</p>
+            <p style="color: #64748b; font-size: 14px; margin: 4px 0 0 0;">{{ lease.apartment.get_apartment_type_display }}</p>
+        </div>
+        
+        <div>
+            <p style="color: #64748b; font-size: 13px; margin: 0 0 4px 0;">Move-in Date</p>
+            <p style="font-size: 18px; font-weight: 600; margin: 0;">{{ lease.move_in_date }}</p>
+        </div>
+        
+        <div>
+            <p style="color: #64748b; font-size: 13px; margin: 0 0 4px 0;">Move-out Date</p>
+            <p style="font-size: 18px; font-weight: 600; margin: 0;">
+                {% if lease.move_out_date %}
+                    {{ lease.move_out_date }}
+                {% else %}
+                    <span style="color: #10b981;">Ongoing (Month-to-Month)</span>
+                {% endif %}
+            </p>
+        </div>
+        
+        <div>
+            <p style="color: #64748b; font-size: 13px; margin: 0 0 4px 0;">Lease Type</p>
+            <p style="font-size: 18px; font-weight: 600; margin: 0;">{{ lease.get_lease_type_display }}</p>
+        </div>
+        
+        <div>
+            <p style="color: #64748b; font-size: 13px; margin: 0 0 4px 0;">Occupants</p>
+            <p style="font-size: 18px; font-weight: 600; margin: 0;">{{ lease.num_occupants }}</p>
+        </div>
+    </div>
+</div>
+
+<!-- Rent Payment Summary -->
+<div class="card">
+    <div class="card-header">
+        <h3>Rent Payment Summary</h3>
+        {% if lease.status == 'active' %}
+        <a href="{% url 'add_payment' lease.id %}" class="btn btn-success btn-sm">+ Add Payment</a>
+        {% endif %}
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin-top: 20px;">
+        <div style="background: #f8fafc; padding: 20px; border-radius: 10px; text-align: center;">
+            <p style="color: #64748b; font-size: 13px; margin: 0 0 8px 0;">Monthly Rent</p>
+            <p style="font-size: 28px; font-weight: 700; color: #1e293b; margin: 0;">₱{{ lease.apartment.monthly_rent }}</p>
+        </div>
+        
+        <div style="background: #d1fae5; padding: 20px; border-radius: 10px; text-align: center;">
+            <p style="color: #065f46; font-size: 13px; margin: 0 0 8px 0;">Total Paid</p>
+            <p style="font-size: 28px; font-weight: 700; color: #10b981; margin: 0;">₱{{ lease.get_total_paid_rent|default:"0.00" }}</p>
+        </div>
+        
+        <div style="background: #fee2e2; padding: 20px; border-radius: 10px; text-align: center;">
+            <p style="color: #991b1b; font-size: 13px; margin: 0 0 8px 0;">Outstanding Balance</p>
+            <p style="font-size: 28px; font-weight: 700; color: #ef4444; margin: 0;">₱{{ lease.get_outstanding_balance|default:"0.00" }}</p>
+        </div>
+    </div>
+</div>
+
+<!-- Rent Schedule -->
+<div class="card">
+    <div class="card-header">
+        <h3>Rent Due Dates</h3>
+    </div>
+    
+    {% if rent_due_dates %}
+    <table>
+        <thead>
+            <tr>
+                <th>Due Date</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Days Until Due</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for due_date in rent_due_dates %}
+            <tr>
+                <td><strong>{{ due_date.due_date|date:"M d, Y" }}</strong></td>
+                <td><strong>₱{{ due_date.amount }}</strong></td>
+                <td>
+                    {% if due_date.is_paid %}
+                        <span class="badge badge-success">Paid</span>
+                    {% elif due_date.is_overdue %}
+                        <span class="badge badge-danger">Overdue</span>
+                    {% else %}
+                        <span class="badge badge-warning">Pending</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if due_date.is_paid %}
+                        —
+                    {% elif due_date.is_overdue %}
+                        <span style="color: #ef4444;">{{ due_date.days_overdue }} days overdue</span>
+                    {% else %}
+                        <span style="color: #3b82f6;">{{ due_date.days_until_due }} days</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="text-align: center; color: #64748b; padding: 24px;">No rent due dates scheduled yet.</p>
+    {% endif %}
+</div>
+
+<!-- Rent Payment History -->
+{% if rent_payments %}
+<div class="card">
+    <div class="card-header">
+        <h3>Payment History</h3>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Payment ID</th>
+                <th>Amount</th>
+                <th>Method</th>
+                <th>Transaction ID</th>
+                <th>Date</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for payment in rent_payments %}
+            <tr>
+                <td><strong>#{{ payment.id }}</strong></td>
+                <td><strong>₱{{ payment.amount }}</strong></td>
+                <td>{{ payment.get_payment_method_display }}</td>
+                <td>{{ payment.transaction_id|default:"N/A" }}</td>
+                <td>{{ payment.payment_date|date:"M d, Y h:i A" }}</td>
+                <td>
+                    <span class="badge badge-success">{{ payment.get_payment_status_display }}</span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<!-- Lease Actions -->
+<div style="margin-top: 24px; display: flex; gap: 12px;">
+    {% if lease.status == 'active' %}
+    <a href="{% url 'cancel_lease' lease.id %}" class="btn btn-danger" onclick="return confirm('Are you sure you want to cancel this lease?');">
+        Cancel Lease
+    </a>
+    {% endif %}
+    <a href="{% url 'dashboard' %}" class="btn btn-secondary">← Back to Dashboard</a>
+</div>
+
+<script>
+// Auto-refresh payment summary every 15 seconds
+let refreshInterval;
+
+function refreshPaymentSummary() {
+    const leaseId = {{ lease.id }};
+    fetch(`/api/lease/${leaseId}/payment-summary/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.total_paid !== undefined) {
+                // Update Total Paid card
+                const totalPaidElement = document.querySelector('[data-field="total-paid"]');
+                if (totalPaidElement) {
+                    const oldValue = totalPaidElement.innerText;
+                    totalPaidElement.innerText = '₱' + parseFloat(data.total_paid).toFixed(2);
+                    
+                    // Flash animation if value changed
+                    if (oldValue !== totalPaidElement.innerText) {
+                        totalPaidElement.style.animation = 'none';
+                        setTimeout(() => {
+                            totalPaidElement.style.animation = 'pulse 0.5s ease';
+                        }, 10);
+                    }
+                }
+            }
+            
+            if (data.outstanding_balance !== undefined) {
+                // Update Outstanding Balance card
+                const balanceElement = document.querySelector('[data-field="outstanding-balance"]');
+                if (balanceElement) {
+                    const oldValue = balanceElement.innerText;
+                    balanceElement.innerText = '₱' + parseFloat(data.outstanding_balance).toFixed(2);
+                    
+                    // Flash animation if value changed
+                    if (oldValue !== balanceElement.innerText) {
+                        balanceElement.style.animation = 'none';
+                        setTimeout(() => {
+                            balanceElement.style.animation = 'pulse 0.5s ease';
+                        }, 10);
+                    }
+                }
+            }
+        })
+        .catch(error => console.error('Error refreshing payment summary:', error));
+}
+
+// Add data attributes to payment summary elements
+document.addEventListener('DOMContentLoaded', function() {
+    // Mark the payment fields for updating
+    const paymentCards = document.querySelectorAll('.card:nth-child(2) > div > div');
+    if (paymentCards.length >= 3) {
+        // Total Paid is typically the 2nd card (index 1)
+        const totalPaidCard = paymentCards[1];
+        if (totalPaidCard) {
+            const amountElement = totalPaidCard.querySelector('p:last-of-type');
+            if (amountElement) {
+                amountElement.setAttribute('data-field', 'total-paid');
+            }
+        }
+        
+        // Outstanding Balance is typically the 3rd card (index 2)
+        const balanceCard = paymentCards[2];
+        if (balanceCard) {
+            const amountElement = balanceCard.querySelector('p:last-of-type');
+            if (amountElement) {
+                amountElement.setAttribute('data-field', 'outstanding-balance');
+            }
+        }
+    }
+    
+    // Start refreshing
+    refreshPaymentSummary();
+    refreshInterval = setInterval(refreshPaymentSummary, 15000);
+});
+
+// Cleanup interval on page unload
+window.addEventListener('beforeunload', function() {
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+    }
+});
+
+// Add pulse animation
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes pulse {
+        0% { transform: scale(1); color: #10b981; }
+        50% { transform: scale(1.05); color: #059669; }
+        100% { transform: scale(1); }
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

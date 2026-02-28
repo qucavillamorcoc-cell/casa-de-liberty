@@ -1,0 +1,91 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}Manage Leases - Casa de Liberty{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Manage Leases</h1>
+    <p>View and manage all tenant leases</p>
+</div>
+
+<!-- Filter Tabs -->
+<div class="card">
+    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <a href="{% url 'manage_leases' %}" class="btn {% if not request.GET.status %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">
+            All Leases
+        </a>
+        <a href="{% url 'manage_leases' %}?status=pending" class="btn {% if request.GET.status == 'pending' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">
+            Pending
+        </a>
+        <a href="{% url 'manage_leases' %}?status=active" class="btn {% if request.GET.status == 'active' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">
+            Active
+        </a>
+        <a href="{% url 'manage_leases' %}?status=completed" class="btn {% if request.GET.status == 'completed' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">
+            Completed
+        </a>
+        <a href="{% url 'manage_leases' %}?status=terminated" class="btn {% if request.GET.status == 'terminated' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">
+            Terminated
+        </a>
+    </div>
+</div>
+
+<!-- Bookings Table -->
+<div class="card">
+    <table>
+        <thead>
+            <tr>
+                <th>Booking ID</th>
+                <th>Guest</th>
+                <th>Contact</th>
+                <th>Room</th>
+                <th>Check-in</th>
+                <th>Check-out</th>
+                <th>Total</th>
+                <th>Balance</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for booking in bookings %}
+            <tr>
+                <td><strong>#{{ booking.id }}</strong></td>
+                <td>{{ booking.user.username }}</td>
+                <td>{{ booking.user.email|default:"N/A" }}</td>
+                <td>{{ booking.room.room_number }}</td>
+                <td>{{ booking.check_in }}</td>
+                <td>{{ booking.check_out }}</td>
+                <td><strong>₱{{ booking.total_price }}</strong></td>
+                <td>
+                    {% if booking.is_fully_paid %}
+                        <span style="color: #10b981; font-weight: 600;">Paid</span>
+                    {% else %}
+                        <span style="color: #ef4444; font-weight: 600;">₱{{ booking.get_balance }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <form method="post" action="{% url 'update_booking_status' booking.id %}" style="margin: 0;">
+                        {% csrf_token %}
+                        <select name="status" class="badge 
+                            {% if booking.status == 'confirmed' %}badge-success
+                            {% elif booking.status == 'pending' %}badge-warning
+                            {% elif booking.status == 'cancelled' %}badge-danger
+                            {% else %}badge-info{% endif %}"
+                            style="border: none; cursor: pointer; padding: 6px 12px; font-weight: 600;"
+                            onchange="this.form.submit()">
+                            <option value="pending" {% if booking.status == 'pending' %}selected{% endif %}>Pending</option>
+                            <option value="confirmed" {% if booking.status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                            <option value="completed" {% if booking.status == 'completed' %}selected{% endif %}>Completed</option>
+                            <option value="cancelled" {% if booking.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                        </select>
+                    </form>
+                </td>
+                <td>
+                    <a href="{% url 'manage_leases' %}" class="btn btn-secondary btn-sm">View</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

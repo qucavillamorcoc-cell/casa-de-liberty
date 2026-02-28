@@ -1,0 +1,415 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}Manage Bookings - Casa de Liberty{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Manage Bookings</h1>
+    <div class="user-profile">
+        <div class="user-info" style="text-align: right;">
+            <p>Admin Panel</p>
+            <span>Staff</span>
+        </div>
+        <div class="user-avatar">A</div>
+    </div>
+</div>
+
+<div style="margin-bottom: 24px;">
+    <p style="color: #64748b; font-size: 16px; margin: 0; letter-spacing: 0.5px;">View and manage all customer bookings</p>
+</div>
+<style>
+    html.dark-mode .page-header {
+        color: var(--text-primary);
+    }
+    
+    html.dark-mode p {
+        color: var(--text-secondary);
+    }
+</style>
+
+<!-- Filter Tabs -->
+<div class="section" style="margin-bottom: 32px; animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.1s backwards;">
+    <h3 style="font-size: 16px; font-weight: 700; color: #1e293b; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px;">Filter Bookings</h3>
+    <style>
+        .filter-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 12px 20px;
+            text-decoration: none;
+            font-size: 13px;
+            border: none;
+            cursor: pointer;
+            border-radius: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-block;
+            background: #e2e8f0;
+            color: #475569;
+        }
+        
+        html.dark-mode .filter-btn {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+        
+        .filter-btn:hover {
+            background: #cbd5e1;
+            transform: translateY(-2px);
+        }
+        
+        html.dark-mode .filter-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-primary);
+        }
+        
+        .filter-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        html.dark-mode .filter-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            border-color: transparent;
+        }
+    </style>
+    
+    <div class="filter-buttons">
+        <a href="{% url 'manage_bookings' %}" class="filter-btn {% if not request.GET.status %}active{% endif %}">
+            📋 All Bookings
+        </a>
+        <a href="{% url 'manage_bookings' %}?status=pending" class="filter-btn {% if request.GET.status == 'pending' %}active{% endif %}">
+            ⏳ Pending
+        </a>
+        <a href="{% url 'manage_bookings' %}?status=confirmed" class="filter-btn {% if request.GET.status == 'confirmed' %}active{% endif %}">
+            ✅ Confirmed
+        </a>
+        <a href="{% url 'manage_bookings' %}?status=completed" class="filter-btn {% if request.GET.status == 'completed' %}active{% endif %}">
+            ✓ Completed
+        </a>
+        <a href="{% url 'manage_bookings' %}?status=cancelled" class="filter-btn {% if request.GET.status == 'cancelled' %}active{% endif %}">
+            ✗ Cancelled
+        </a>
+    </div>
+</div>
+
+<!-- Bookings Table -->
+<div class="section" style="animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.2s backwards; border-radius: 16px; padding: 0;">
+    {% if bookings %}
+    <style>
+        .bookings-table-wrapper {
+            overflow-x: auto;
+            border-radius: 16px;
+        }
+        
+        .bookings-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 2px 16px rgba(15, 20, 25, 0.1);
+        }
+        
+        html.dark-mode .bookings-table {
+            background: var(--card-bg);
+        }
+        
+        .bookings-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .bookings-table th {
+            padding: 18px 20px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            white-space: nowrap;
+        }
+        
+        .bookings-table tbody tr {
+            border-bottom: 1px solid #e2e8f0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: white;
+        }
+        
+        html.dark-mode .bookings-table tbody tr {
+            border-bottom-color: var(--border-color);
+            background: var(--card-bg);
+        }
+        
+        .bookings-table tbody tr:hover {
+            background: #f8fafc;
+            box-shadow: inset 0 0 12px rgba(102, 126, 234, 0.08);
+        }
+        
+        html.dark-mode .bookings-table tbody tr:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+        
+        .bookings-table td {
+            padding: 16px 20px;
+            font-size: 14px;
+        }
+        
+        .booking-id {
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        html.dark-mode .booking-id {
+            color: #60a5fa;
+        }
+        
+        .booking-guest {
+            color: #1e293b;
+            font-weight: 600;
+        }
+        
+        html.dark-mode .booking-guest {
+            color: var(--text-primary);
+        }
+        
+        .booking-email {
+            color: #64748b;
+            font-size: 13px;
+        }
+        
+        html.dark-mode .booking-email {
+            color: var(--text-secondary);
+        }
+        
+        .booking-room {
+            color: #1e293b;
+            font-weight: 600;
+        }
+        
+        html.dark-mode .booking-room {
+            color: var(--text-primary);
+        }
+        
+        .booking-date {
+            color: #64748b;
+            font-size: 13px;
+        }
+        
+        html.dark-mode .booking-date {
+            color: var(--text-secondary);
+        }
+        
+        .booking-total {
+            font-weight: 700;
+            color: #1e293b;
+        }
+        
+        html.dark-mode .booking-total {
+            color: var(--text-primary);
+        }
+        
+        .balance-badge {
+            display: inline-block;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .balance-paid {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        html.dark-mode .balance-paid {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+        
+        .balance-pending {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        html.dark-mode .balance-pending {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+        
+        .status-select {
+            padding: 10px 12px;
+            border: 2px solid;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .status-select-pending {
+            border-color: #f59e0b;
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        html.dark-mode .status-select-pending {
+            background: rgba(245, 158, 11, 0.2);
+            border-color: #fbbf24;
+            color: #fcd34d;
+        }
+        
+        .status-select-confirmed {
+            border-color: #10b981;
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        html.dark-mode .status-select-confirmed {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: #10b981;
+            color: #10b981;
+        }
+        
+        .status-select-completed {
+            border-color: #3b82f6;
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        html.dark-mode .status-select-completed {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: #3b82f6;
+            color: #60a5fa;
+        }
+        
+        .status-select-cancelled {
+            border-color: #ef4444;
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        html.dark-mode .status-select-cancelled {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: #ef4444;
+            color: #f87171;
+        }
+        
+        .view-details-btn {
+            padding: 8px 16px;
+            text-decoration: none;
+            font-size: 12px;
+            border: none;
+            cursor: pointer;
+            border-radius: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-block;
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .view-details-btn:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        html.dark-mode .view-details-btn {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        html.dark-mode .view-details-btn:hover {
+            background: #60a5fa;
+            box-shadow: 0 4px 12px rgba(96, 165, 250, 0.3);
+        }
+    </style>
+    
+    <div class="bookings-table-wrapper">
+        <table class="bookings-table">
+            <thead>
+                <tr>
+                    <th>Booking ID</th>
+                    <th>Guest</th>
+                    <th>Contact</th>
+                    <th>Room</th>
+                    <th>Check-in</th>
+                    <th>Check-out</th>
+                    <th>Total</th>
+                    <th>Balance</th>
+                    <th>Status</th>
+                    <th style="text-align: center;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for booking in bookings %}
+                <tr>
+                    <td class="booking-id">#{{ booking.id }}</td>
+                    <td class="booking-guest">{{ booking.user.username }}</td>
+                    <td class="booking-email">{{ booking.user.email|default:"N/A" }}</td>
+                    <td class="booking-room">Room {{ booking.room.room_number }}</td>
+                    <td class="booking-date">{{ booking.check_in|date:"M d, Y" }}</td>
+                    <td class="booking-date">{{ booking.check_out|date:"M d, Y" }}</td>
+                    <td class="booking-total">₱{{ booking.total_price }}</td>
+                    <td>
+                        {% if booking.is_fully_paid %}
+                            <span class="balance-badge balance-paid">✓ Paid</span>
+                        {% else %}
+                            <span class="balance-badge balance-pending">₱{{ booking.get_balance }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <form method="post" action="{% url 'update_booking_status' booking.id %}" style="margin: 0; display: inline;">
+                            {% csrf_token %}
+                            <select name="status" class="status-select status-select-{% if booking.status == 'confirmed' %}confirmed{% elif booking.status == 'pending' %}pending{% elif booking.status == 'completed' %}completed{% else %}cancelled{% endif %}" onchange="this.form.submit()">
+                                <option value="pending" {% if booking.status == 'pending' %}selected{% endif %}>Pending</option>
+                                <option value="confirmed" {% if booking.status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                                <option value="completed" {% if booking.status == 'completed' %}selected{% endif %}>Completed</option>
+                                <option value="cancelled" {% if booking.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                            </select>
+                        </form>
+                    </td>
+                    <td style="text-align: center;">
+                        <a href="{% url 'booking_detail' booking.id %}" class="view-details-btn">View Details</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 80px 20px; animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.3s backwards;">
+        <div style="font-size: 80px; margin-bottom: 16px;">📅</div>
+        <h3 style="font-size: 20px; font-weight: 600; color: #1e293b; margin-bottom: 8px;">No Bookings Found</h3>
+        <p style="color: #64748b;">No bookings match your current filter</p>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    html.dark-mode .empty-state h3 {
+        color: var(--text-primary);
+    }
+    
+    html.dark-mode .empty-state p {
+        color: var(--text-secondary);
+    }
+</style>
+{% endblock %}

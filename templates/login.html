@@ -1,0 +1,133 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Casa de Liberty</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20100%20100%22%3E%3Ctext%20y=%22.9em%22%20font-size=%2290%22%3E%F0%9F%8F%A8%3C/text%3E%3C/svg%3E">
+    <!-- Global Theme Manager - Load early to prevent theme flashing -->
+    <script src="{% static 'js/theme.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        html.dark-mode {
+            --bg-primary: #111827;
+            --text-primary: #f3f4f6;
+            --text-secondary: #d1d5db;
+            --border-color: #4b5563;
+        }
+    </style>
+</head>
+<body style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; position: relative;">
+
+<div style="background: var(--bg-primary, white); border-radius: 16px; padding: 40px; width: 100%; max-width: 450px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
+    <!-- Logo -->
+    <div style="text-align: center; margin-bottom: 32px;">
+        <div style="width: 64px; height: 64px; background: #f59e0b; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 16px;">
+            🏨
+        </div>
+        <h1 style="font-size: 28px; font-weight: 700; color: var(--text-primary, #1e293b); margin: 0 0 8px 0;">Casa de Liberty</h1>
+        <p style="color: var(--text-secondary, #64748b); margin: 0;">
+            {% if request.GET.next %}
+                Sign in to book your room
+            {% else %}
+                Sign in to your account
+            {% endif %}
+        </p>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}" style="margin-bottom: 20px;">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Login Form -->
+    <form method="post">
+        {% csrf_token %}
+        
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; font-size: 14px; font-weight: 600; color: var(--text-primary, #374151); margin-bottom: 8px;">Username</label>
+            <input type="text" name="username" placeholder="Enter your username" required style="width: 100%; padding: 12px 14px; border: 1px solid var(--border-color, #e2e8f0); border-radius: 8px; font-size: 14px; background: var(--bg-primary, white); color: var(--text-primary, #1e293b); box-sizing: border-box;">
+        </div>
+        
+        <div style="margin-bottom: 12px;">
+            <label style="display: block; font-size: 14px; font-weight: 600; color: var(--text-primary, #374151); margin-bottom: 8px;">Password</label>
+            <input type="password" name="password" placeholder="Enter your password" required style="width: 100%; padding: 12px 14px; border: 1px solid var(--border-color, #e2e8f0); border-radius: 8px; font-size: 14px; background: var(--bg-primary, white); color: var(--text-primary, #1e293b); box-sizing: border-box;">
+        </div>
+        
+        <!-- Forgot Password Link -->
+        <div style="text-align: right; margin-bottom: 24px;">
+            <a href="{% url 'password_reset' %}" style="color: #667eea; font-size: 14px; font-weight: 500; text-decoration: none;">
+                Forgot Password?
+            </a>
+        </div>
+        
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 16px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">
+            Sign In
+        </button>
+    </form>
+
+    <!-- Register Link -->
+    <div style="text-align: center; margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border-color, #e2e8f0);">
+        <p style="color: var(--text-secondary, #64748b); margin: 0;">Don't have an account? 
+            <a href="{% url 'register' %}" style="color: #667eea; font-weight: 600; text-decoration: none;">Create Account</a>
+        </p>
+    </div>
+
+    <!-- Home Link -->
+    <div style="text-align: center; margin-top: 16px;">
+        <a href="{% url 'home' %}" style="color: var(--text-secondary, #64748b); font-size: 14px; text-decoration: none;">← Back to Home</a>
+    </div>
+</div>
+
+<script>
+    // Page Transition Animations
+    document.addEventListener('DOMContentLoaded', function() {
+        const loginContainer = document.querySelector('.login-container');
+        const loginForm = document.querySelector('.login-form');
+        
+        if (loginContainer) loginContainer.style.animation = 'pageTransitionIn 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+        if (loginForm) loginForm.style.animation = 'pageTransitionIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.2s backwards';
+    });
+
+    // Add smooth transitions when navigating
+    const navLinks = document.querySelectorAll('a');
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            if (!this.target && !this.href.includes('#') && !this.onclick) {
+                document.body.style.animation = 'pageTransitionOut 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+            }
+        });
+    });
+</script>
+
+<style>
+    @keyframes pageTransitionIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes pageTransitionOut {
+        from {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        to {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+    }
+</style>
+
+</body>
+</html>

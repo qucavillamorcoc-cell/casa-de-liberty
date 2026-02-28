@@ -1,0 +1,138 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}Add Payment - Casa de Liberty{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Add Payment</h1>
+    <div class="user-profile">
+        <div class="user-info" style="text-align: right;">
+            <p>{{ request.user.username }}</p>
+            <span>Tenant</span>
+        </div>
+        <div class="user-avatar">{{ request.user.username.0|upper }}</div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; max-width: 1200px;">
+    <!-- Lease Summary -->
+    <div class="section">
+        <h3 style="font-size: 18px; font-weight: 600; margin: 0 0 20px 0;">Lease Summary</h3>
+        
+        <div style="background: #f8fafc; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+            <p style="font-size: 12px; color: #64748b; margin: 0 0 4px 0; font-weight: 600;">LEASE ID</p>
+            <p style="font-size: 24px; font-weight: 700; color: #1e293b; margin: 0;">#{{ lease.id }}</p>
+        </div>
+        
+        <div style="border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; margin-bottom: 20px;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <tbody>
+                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding: 14px; font-weight: 600; color: #64748b;">Apartment</td>
+                        <td style="padding: 14px; color: #1e293b; text-align: right;">{{ lease.apartment.unit_number }}</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding: 14px; font-weight: 600; color: #64748b;">Move-in</td>
+                        <td style="padding: 14px; color: #1e293b; text-align: right;">{{ lease.move_in_date|date:"M d, Y" }}</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding: 14px; font-weight: 600; color: #64748b;">Move-out</td>
+                        <td style="padding: 14px; color: #1e293b; text-align: right;">{% if lease.move_out_date %}{{ lease.move_out_date|date:"M d, Y" }}{% else %}<span style="color: #10b981;">Ongoing</span>{% endif %}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 14px; font-weight: 600; color: #64748b;">Monthly Rent</td>
+                        <td style="padding: 14px; color: #1e293b; text-align: right; font-weight: 700;">₱{{ lease.monthly_rent }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+            <div style="background: #f0f9ff; padding: 16px; border-radius: 8px; text-align: center;">
+                <p style="font-size: 12px; color: #1e40af; margin: 0 0 4px 0; font-weight: 600;">TOTAL</p>
+                <p style="font-size: 20px; font-weight: 700; color: #1e40af; margin: 0;">₱{{ lease.total_lease_price }}</p>
+            </div>
+            <div style="background: #d1fae5; padding: 16px; border-radius: 8px; text-align: center;">
+                <p style="font-size: 12px; color: #065f46; margin: 0 0 4px 0; font-weight: 600;">PAID</p>
+                <p style="font-size: 20px; font-weight: 700; color: #10b981; margin: 0;">₱{{ lease.get_total_paid }}</p>
+            </div>
+            <div style="background: #fee2e2; padding: 16px; border-radius: 8px; text-align: center;">
+                <p style="font-size: 12px; color: #991b1b; margin: 0 0 4px 0; font-weight: 600;">BALANCE</p>
+                <p style="font-size: 20px; font-weight: 700; color: #ef4444; margin: 0;">₱{{ balance }}</p>
+            </div>
+        </div>
+
+        <!-- Unpaid Dues Selection -->
+        {% if unpaid_dues %}
+        <div style="margin-top: 20px; padding: 16px; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 8px;">
+            <h4 style="margin: 0 0 12px 0; color: #92400e; font-weight: 700;">Unpaid Monthly Dues</h4>
+            <div style="max-height: 150px; overflow-y: auto;">
+                {% for due in unpaid_dues %}
+                <div style="padding: 8px 0; border-bottom: 1px solid rgba(245, 158, 11, 0.2); display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: #92400e; font-weight: 600;">{{ due.due_date|date:"F Y" }}</span>
+                    <span style="color: #92400e; font-weight: 700;">₱{{ due.amount_due }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Payment Form -->
+    <div class="section">
+        <h3 style="font-size: 18px; font-weight: 600; margin: 0 0 20px 0;">Payment Information</h3>
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            {% if unpaid_dues %}
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Payment Month (Optional)</label>
+                <select name="payment_date" style="width: 100%; padding: 12px 14px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; background: white;">
+                    <option value="">-- Select Month to Pay --</option>
+                    {% for due in unpaid_dues %}
+                    <option value="{{ due.due_date }}">{{ due.due_date|date:"F Y" }} (₱{{ due.amount_due }})</option>
+                    {% endfor %}
+                </select>
+                <p style="font-size: 12px; color: #64748b; margin: 6px 0 0 0;">Select the specific month you are paying for</p>
+            </div>
+            {% endif %}
+            
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Payment Amount *</label>
+                <input type="number" name="amount" step="0.01" max="{{ balance }}" required placeholder="Enter amount" style="width: 100%; padding: 12px 14px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
+                <p style="font-size: 12px; color: #64748b; margin: 6px 0 0 0;">Maximum balance: ₱{{ balance }}</p>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Payment Method *</label>
+                <select name="payment_method" required style="width: 100%; padding: 12px 14px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; background: white;">
+                    <option value="">-- Select Payment Method --</option>
+                    <option value="cash">💵 Cash</option>
+                    <option value="gcash">📱 GCash</option>
+                    <option value="card">💳 Credit/Debit Card</option>
+                    <option value="bank">🏦 Bank Transfer</option>
+                </select>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Transaction ID (Optional)</label>
+                <input type="text" name="transaction_id" placeholder="Reference number or receipt ID" style="width: 100%; padding: 12px 14px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
+            </div>
+
+            <div style="margin-bottom: 24px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Notes (Optional)</label>
+                <textarea name="notes" rows="3" placeholder="Additional notes about this payment..." style="width: 100%; padding: 12px 14px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; resize: vertical; font-family: inherit;"></textarea>
+            </div>
+            
+            <button type="submit" class="btn-success" style="width: 100%; padding: 14px 24px; color: white; border: none; border-radius: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; font-size: 14px; transition: all 0.3s ease;" data-hover-effect="button" data-shadow-color="rgba(16, 185, 129, 0.3)">
+                ✓ Record Payment
+            </button>
+        </form>
+        
+        <div style="margin-top: 16px; text-align: center;">
+            <a href="{% url 'my_leases' %}" style="color: #64748b; font-size: 14px; text-decoration: none;">← Back to My Leases</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

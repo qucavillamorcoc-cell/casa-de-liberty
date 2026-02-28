@@ -1,0 +1,120 @@
+{% extends "base_dashboard.html" %}
+{% block title %}My Leases - Casa de Liberty{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">My Leases</h1>
+    <div class="user-profile">
+        <div class="user-info" style="text-align: right;">
+            <p>{{ request.user.username }}</p>
+            <span>Tenant</span>
+        </div>
+        <div class="user-avatar">{{ request.user.username.0|upper }}</div>
+    </div>
+</div>
+
+<!-- CTA Button -->
+<div style="margin-bottom: 20px; animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.1s backwards;">
+    <a href="{% url 'apartments' %}" class="btn-luxury btn-luxury-primary" style="padding: 12px 24px; text-decoration: none; border: none; cursor: pointer; border-radius: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; display: inline-block; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
+        ➕ Lease a New Apartment
+    </a>
+</div>
+
+<!-- Leases List -->
+<div class="section" style="animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.2s backwards;">
+    <h2 class="luxury-title" style="margin-bottom: 24px; font-size: 24px;">Your Leases</h2>
+    
+    {% if leases %}
+    <div style="display: grid; gap: 16px;">
+        {% for lease in leases %}
+        <div class="luxury-card" style="animation-delay: {{ forloop.counter|add:0.1 }}s;">
+            <div class="luxury-content" style="padding: 20px;">
+                <!-- Lease Header -->
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
+                    <div>
+                        <h3 class="luxury-title" style="font-size: 22px; margin-bottom: 4px; color: var(--text-primary);">Lease #{{ lease.id }}</h3>
+                        <p class="luxury-subtitle" style="color: var(--text-secondary);">Apartment {{ lease.apartment.unit_number }} - {{ lease.apartment.get_apartment_type_display }}</p>
+                    </div>
+                    <span style="display: inline-block; padding: 8px 16px; border-radius: 10px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; background: {% if lease.status == 'active' %}rgba(16, 185, 129, 0.2){% elif lease.status == 'pending' %}rgba(245, 158, 11, 0.2){% elif lease.status == 'completed' %}rgba(59, 130, 246, 0.2){% else %}rgba(107, 114, 128, 0.2){% endif %}; color: {% if lease.status == 'active' %}#10b981{% elif lease.status == 'pending' %}#f59e0b{% elif lease.status == 'completed' %}#3b82f6{% else %}#6b7280{% endif %};">
+                        {{ lease.get_status_display }}
+                    </span>
+                </div>
+                
+                <div class="luxury-divider"></div>
+                
+                <!-- Lease Details Grid -->
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; padding: 12px; background: var(--bg-tertiary); border-radius: 12px; border-left: 4px solid #667eea;">
+                    <div>
+                        <p style="font-size: 12px; color: var(--text-secondary); font-weight: 700; margin: 0 0 6px 0; text-transform: uppercase; letter-spacing: 0.5px;">Move-in</p>
+                        <p style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0;">{{ lease.move_in_date|date:"M d, Y" }}</p>
+                    </div>
+                    <div>
+                        <p style="font-size: 12px; color: var(--text-secondary); font-weight: 700; margin: 0 0 6px 0; text-transform: uppercase; letter-spacing: 0.5px;">Move-out</p>
+                        <p style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0;">{% if lease.move_out_date %}{{ lease.move_out_date|date:"M d, Y" }}{% else %}<em>Ongoing</em>{% endif %}</p>
+                    </div>
+                    <div>
+                        <p style="font-size: 12px; color: var(--text-secondary); font-weight: 700; margin: 0 0 6px 0; text-transform: uppercase; letter-spacing: 0.5px;">Lease Type</p>
+                        <p style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0;">{{ lease.get_lease_type_display }}</p>
+                    </div>
+                </div>
+                
+                <!-- Pricing Info -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+                    <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 10px; border-left: 3px solid #667eea;">
+                        <p style="font-size: 11px; color: var(--text-secondary); margin: 0 0 4px 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Monthly Rent</p>
+                        <p style="font-size: 18px; font-weight: 900; color: #667eea; margin: 0;">₱{{ lease.monthly_rent }}</p>
+                    </div>
+                    <div style="padding: 12px; background: rgba(16, 185, 129, 0.1); border-radius: 10px; border-left: 3px solid #10b981;">
+                        <p style="font-size: 11px; color: #10b981; margin: 0 0 4px 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Total Paid</p>
+                        <p style="font-size: 18px; font-weight: 900; color: #10b981; margin: 0;">₱{{ lease.get_total_paid }}</p>
+                    </div>
+                    <div style="padding: 12px; background: {% if lease.is_fully_paid %}rgba(16, 185, 129, 0.1){% else %}rgba(245, 158, 11, 0.1){% endif %}; border-radius: 10px; border-left: 3px solid {% if lease.is_fully_paid %}#10b981{% else %}#f59e0b{% endif %};">
+                        <p style="font-size: 11px; color: {% if lease.is_fully_paid %}#10b981{% else %}#f59e0b{% endif %}; margin: 0 0 4px 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Balance</p>
+                        <p style="font-size: 18px; font-weight: 900; color: {% if lease.is_fully_paid %}#10b981{% else %}#f59e0b{% endif %}; margin: 0;">₱{{ lease.get_balance }}</p>
+                    </div>
+                </div>
+                
+                <!-- Occupancy Info -->
+                {% if lease.special_requests %}
+                <div style="padding: 12px; background: rgba(245, 158, 11, 0.1); border-radius: 10px; margin-bottom: 16px; border-left: 4px solid #f59e0b;">
+                    <p style="font-size: 11px; color: #f59e0b; font-weight: 700; margin: 0 0 4px 0; text-transform: uppercase; letter-spacing: 0.5px;">Special Requests</p>
+                    <p style="font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.5;">{{ lease.special_requests }}</p>
+                </div>
+                {% endif %}
+                
+                <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px; margin-bottom: 16px;">
+                    <p style="font-size: 11px; color: #667eea; margin: 0 0 2px 0; font-weight: 700;">Occupants: <strong>{{ lease.num_occupants }}</strong></p>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div style="display: flex; gap: 8px;">
+                    <a href="{% url 'lease_detail' lease.id %}" class="btn-luxury btn-luxury-secondary" style="flex: 1; padding: 10px 14px; text-decoration: none; text-align: center; border: none; cursor: pointer; border-radius: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-size: 12px;">
+                        View Details
+                    </a>
+                    {% if not lease.is_fully_paid %}
+                    <a href="{% url 'add_payment' lease.id %}" class="btn-luxury btn-luxury-primary" style="flex: 1; padding: 10px 14px; text-decoration: none; text-align: center; border: none; cursor: pointer; border-radius: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-size: 12px;">
+                        Pay Rent
+                    </a>
+                    {% endif %}
+                    {% if lease.status == 'pending' or lease.status == 'active' %}
+                    <a href="{% url 'cancel_lease' lease.id %}" class="btn-luxury btn-luxury-danger" style="flex: 1; padding: 10px 14px; text-decoration: none; text-align: center; border: none; cursor: pointer; border-radius: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-size: 12px;" onclick="return confirm('Are you sure you want to cancel this lease?')">
+                        Cancel Lease
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 80px 20px; background: var(--card-bg); border-radius: 16px; animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.3s backwards;">
+        <div style="font-size: 80px; margin-bottom: 16px;">🏠</div>
+        <h3 style="font-size: 20px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px;">No Leases Yet</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 24px;">Start by leasing an apartment at Casa de Liberty!</p>
+        <a href="{% url 'apartments' %}" class="btn-luxury btn-luxury-primary" style="padding: 14px 28px; text-decoration: none; border: none; cursor: pointer; border-radius: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; display: inline-block; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
+            View Available Apartments
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

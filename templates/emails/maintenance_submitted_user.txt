@@ -1,0 +1,13 @@
+Maintenance request #{{ maintenance.id }} received
+
+Hello {{ maintenance.user.get_full_name|default:maintenance.user.username }},
+
+We received your maintenance request for Room {{ maintenance.room.room_number }}. Our staff will review and update you when the status changes.
+
+Request details:
+- Type: {{ maintenance.get_maintenance_type_display }}
+- Priority: {{ maintenance.get_priority_display }}
+- Submitted: {{ maintenance.created_at|date:"M d, Y H:i" }}
+
+Thank you,
+Casa de Liberty Team

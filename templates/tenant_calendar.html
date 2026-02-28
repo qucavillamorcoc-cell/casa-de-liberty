@@ -1,0 +1,1064 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}Calendar - Casa de Liberty{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">My Calendar</h1>
+    <div class="user-profile">
+        <div class="user-info" style="text-align: right;">
+            <p>{{ user.username }}</p>
+            <span>Tenant</span>
+        </div>
+        <div class="user-avatar">📅</div>
+    </div>
+</div>
+
+<div style="margin-bottom: 16px;">
+    <p style="color: var(--text-secondary); font-size: 15px; margin: 0; letter-spacing: 0.5px;">View property events and manage your calendar requests</p>
+</div>
+
+<!-- Upcoming Events Consolidated Section -->
+<div id="tenant-agenda-container" style="background: linear-gradient(135deg, var(--luxury-accent) 0%, var(--luxury-accent-dark) 100%); border-radius: 16px; padding: 20px; margin-bottom: 20px; color: white; box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2); transition: all 0.3s ease;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <h2 style="margin: 0; font-size: 22px; font-weight: 700;">📋 All Upcoming Events & Payments</h2>
+        <button id="toggle-tenant-agenda-btn" onclick="toggleTenantAgenda()" style="padding: 12px 24px; background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.4); border-radius: 8px; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);" onmouseover="this.style.background='rgba(255,255,255,0.3)'; this.style.borderColor='rgba(255,255,255,0.6)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.borderColor='rgba(255,255,255,0.4)'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+            HIDE
+        </button>
+    </div>
+    
+    <div id="tenant-agenda-content" style="display: grid; gap: 16px;">
+        <!-- Admin Events Section -->
+        {% if admin_events %}
+        <div>
+            <h3 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 700; color: white; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9;">📍 Property Events ({{ admin_events|length }})</h3>
+            <div style="display: grid; gap: 12px;">
+                {% for event in admin_events %}
+                <div onclick="navigateTenantToDate('{{ event.event_date|date:'Y-m-d' }}')" style="background: rgba(16, 185, 129, 0.15); border-radius: 12px; padding: 16px; backdrop-filter: blur(10px); border-left: 4px solid #10b981; cursor: pointer;" data-hover-effect="card" data-shadow-color="none">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                        <div>
+                            <p style="margin: 0; font-weight: 700; font-size: 15px; color: white;">{{ event.title }}</p>
+                            <p style="margin: 4px 0 0 0; font-size: 13px; color: rgba(255,255,255,0.8);">{{ event.event_date|date:"M d, Y" }}</p>
+                        </div>
+                        <span style="display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(16, 185, 129, 0.2); color: #10b981;">📍 Admin</span>
+                    </div>
+                    {% if event.description %}
+                    <p style="margin: 8px 0 0 0; font-size: 13px; color: rgba(255,255,255,0.85); line-height: 1.4;">{{ event.description|truncatewords:15 }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Your Approved Events Section -->
+        {% if tenant_events %}
+        <div>
+            <h3 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 700; color: white; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9;">✓ Your Approved Events ({{ tenant_events|length }})</h3>
+            <div style="display: grid; gap: 12px;">
+                {% for event in tenant_events %}
+                <div onclick="navigateTenantToDate('{{ event.event_date|date:'Y-m-d' }}')" style="background: rgba(59, 130, 246, 0.15); border-radius: 12px; padding: 16px; backdrop-filter: blur(10px); border-left: 4px solid #3b82f6; cursor: pointer;" data-hover-effect="card" data-shadow-color="none">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                        <div>
+                            <p style="margin: 0; font-weight: 700; font-size: 15px; color: white;">{{ event.title }}</p>
+                            <p style="margin: 4px 0 0 0; font-size: 13px; color: rgba(255,255,255,0.8);">{{ event.event_date|date:"M d, Y" }}</p>
+                        </div>
+                        <span style="display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(59, 130, 246, 0.2); color: #3b82f6;">✓ Approved</span>
+                    </div>
+                    {% if event.description %}
+                    <p style="margin: 8px 0 0 0; font-size: 13px; color: rgba(255,255,255,0.85); line-height: 1.4;">{{ event.description|truncatewords:15 }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Pending Requests Section -->
+        {% if pending_requests %}
+        <div>
+            <h3 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 700; color: white; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9;">⏳ Pending Requests ({{ pending_requests|length }})</h3>
+            <div style="display: grid; gap: 12px;">
+                {% for event in pending_requests %}
+                <div onclick="navigateTenantToDate('{{ event.event_date|date:'Y-m-d' }}')" style="background: rgba(245, 158, 11, 0.15); border-radius: 12px; padding: 16px; backdrop-filter: blur(10px); border-left: 4px solid #f59e0b; cursor: pointer;" data-hover-effect="card" data-shadow-color="none">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                        <div>
+                            <p style="margin: 0; font-weight: 700; font-size: 15px; color: white;">{{ event.title }}</p>
+                            <p style="margin: 4px 0 0 0; font-size: 13px; color: rgba(255,255,255,0.8);">{{ event.event_date|date:"M d, Y" }}</p>
+                        </div>
+                        <span style="display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(245, 158, 11, 0.2); color: #f59e0b;">⏳ Pending</span>
+                    </div>
+                    {% if event.description %}
+                    <p style="margin: 8px 0 0 0; font-size: 13px; color: rgba(255,255,255,0.85); line-height: 1.4;">{{ event.description|truncatewords:15 }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Payment Due Section -->
+        {% if due_payments %}
+        <div>
+            <h3 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 700; color: white; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9;">💳 Payment Due ({{ due_payments|length }})</h3>
+            <div style="display: grid; gap: 12px;">
+                {% for payment in due_payments %}
+                <div onclick="navigateTenantToDate('{{ payment.due_date|date:'Y-m-d' }}')" style="background: rgba(239, 68, 68, 0.15); border-radius: 12px; padding: 16px; backdrop-filter: blur(10px); border-left: 4px solid #ef4444; cursor: pointer;" data-hover-effect="card" data-shadow-color="none">                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                        <div>
+                            <p style="margin: 0; font-weight: 700; font-size: 15px; color: white;">💳 Payment Due - ₱{{ payment.amount_due }}</p>
+                            <p style="margin: 4px 0 0 0; font-size: 13px; color: rgba(255,255,255,0.8);">Due: {{ payment.due_date|date:"M d, Y" }}</p>
+                        </div>
+                        <span style="display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(239, 68, 68, 0.2); color: #ef4444;">💳 Payment</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- No Events Message -->
+        {% if not admin_events and not tenant_events and not pending_requests and not due_payments %}
+        <div style="text-align: center; padding: 30px 16px;">
+            <p style="margin: 0; font-size: 14px; color: rgba(255,255,255,0.8);">✨ No upcoming events. You're all set!</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+let agendaExpanded = true;
+
+function navigateTenantToDate(dateStr) {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const targetDate = new Date(year, month - 1, day);
+    
+    currentDate = new Date(targetDate);
+    
+    renderCalendar();
+    
+    const calendarWrapper = document.querySelector('.calendar-wrapper');
+    if (calendarWrapper) {
+        setTimeout(() => {
+            calendarWrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+    }
+}
+
+function toggleTenantAgenda() {
+    const agendaContent = document.getElementById('tenant-agenda-content');
+    const toggleBtn = document.getElementById('toggle-tenant-agenda-btn');
+    
+    let agendaExpanded = localStorage.getItem('tenantAgendaVisible') === 'true';
+    agendaExpanded = !agendaExpanded;
+    localStorage.setItem('tenantAgendaVisible', agendaExpanded);
+    
+    if (agendaExpanded) {
+        agendaContent.style.display = 'grid';
+        agendaContent.style.animation = 'slideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards';
+        toggleBtn.textContent = 'HIDE';
+        toggleBtn.style.background = 'rgba(255,255,255,0.2)';
+    } else {
+        agendaContent.style.animation = 'slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards';
+        setTimeout(() => {
+            agendaContent.style.display = 'none';
+        }, 400);
+        toggleBtn.textContent = 'SHOW';
+        toggleBtn.style.background = 'rgba(255,255,255,0.15)';
+    }
+}
+
+// Initialize tenant agenda as hidden by default
+document.addEventListener('DOMContentLoaded', function() {
+    const agendaContent = document.getElementById('tenant-agenda-content');
+    const toggleBtn = document.getElementById('toggle-tenant-agenda-btn');
+    const agendaVisible = localStorage.getItem('tenantAgendaVisible');
+    
+    if (agendaVisible !== 'true') {
+        agendaContent.style.display = 'none';
+        toggleBtn.textContent = 'SHOW';
+        toggleBtn.style.background = 'rgba(255,255,255,0.15)';
+    }
+});
+</script>
+
+<style>
+    .tenant-calendar-container {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+    
+    @media (max-width: 1200px) {
+        .tenant-calendar-container {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .calendar-wrapper {
+        background: white;
+        border-radius: 16px;
+        padding: 16px;
+        box-shadow: 0 2px 16px rgba(15, 20, 25, 0.1);
+    }
+    
+    html.dark-mode .calendar-wrapper {
+        background: var(--card-bg);
+        box-shadow: 0 2px 16px rgba(0, 0, 0, 0.3);
+    }
+    
+    .calendar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+    
+    .calendar-header h2 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 700;
+        color: #1e293b;
+    }
+    
+    html.dark-mode .calendar-header h2 {
+        color: var(--text-primary);
+    }
+    
+    .calendar-nav {
+        display: flex;
+        gap: 12px;
+    }
+    
+    .calendar-nav button {
+        padding: 8px 16px;
+        border: 2px solid #e2e8f0;
+        background: white;
+        color: #1e293b;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    html.dark-mode .calendar-nav button {
+        border-color: var(--border-color);
+        background: var(--bg-tertiary);
+        color: var(--text-primary);
+    }
+    
+    .calendar-nav button:hover {
+        border-color: #667eea;
+        color: #667eea;
+    }
+    
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+    
+    .calendar-day-header {
+        text-align: center;
+        font-weight: 700;
+        color: #667eea;
+        padding: 12px 0;
+        font-size: 12px;
+        text-transform: uppercase;
+    }
+    
+    .calendar-day {
+        aspect-ratio: 1;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        font-size: 12px;
+        position: relative;
+    }
+    
+    html.dark-mode .calendar-day {
+        border-color: var(--border-color);
+        background: var(--bg-tertiary);
+    }
+    
+    .calendar-day:hover {
+        border-color: #667eea;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+    }
+    
+    .calendar-day.today {
+        border-color: #667eea;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.05));
+        font-weight: 700;
+        color: #667eea;
+    }
+    
+    .calendar-day-number {
+        font-weight: 700;
+        color: #1e293b;
+    }
+    
+    html.dark-mode .calendar-day-number {
+        color: var(--text-primary);
+    }
+    
+    .calendar-day-events {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        width: 100%;
+        margin-top: 4px;
+        font-size: 10px;
+        flex-wrap: wrap;
+        overflow: hidden;
+    }
+    
+    .event-item-mini {
+        padding: 2px 4px;
+        border-radius: 3px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: white;
+        font-weight: 600;
+        line-height: 1.2;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .event-item-mini:hover {
+        transform: scale(1.05);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    }
+    
+    .event-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        transition: all 0.2s ease;
+    }
+    
+    .event-dot:hover {
+        transform: scale(1.5);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    }
+    
+    .event-dot.admin { background: #10b981; }
+    .event-dot.approved { background: #3b82f6; }
+    .event-dot.pending { background: #f59e0b; box-shadow: 0 2px 6px rgba(245, 158, 11, 0.4); }
+    .event-dot.payment { background: #ec7063; box-shadow: 0 2px 6px rgba(236, 112, 99, 0.4); }
+    
+    .event-item-mini.admin { background: #10b981; }
+    .event-item-mini.approved { background: #3b82f6; }
+    .event-item-mini.pending { background: #f59e0b; }
+    .event-item-mini.payment { background: #ec7063; }
+    
+    .sidebar-section {
+        background: white;
+        border-radius: 16px;
+        padding: 16px;
+        margin-bottom: 16px;
+        box-shadow: 0 2px 16px rgba(15, 20, 25, 0.1);
+    }
+    
+    html.dark-mode .sidebar-section {
+        background: var(--card-bg);
+        box-shadow: 0 2px 16px rgba(0, 0, 0, 0.3);
+    }
+    
+    .sidebar-section h3 {
+        margin: 0 0 12px 0;
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #1e293b;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    
+    html.dark-mode .sidebar-section h3 {
+        color: var(--text-primary);
+        border-bottom-color: var(--border-color);
+    }
+    
+    .event-item {
+        padding: 10px;
+        border-left: 4px solid #667eea;
+        background: #f8fafc;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        font-size: 12px;
+    }
+    
+    html.dark-mode .event-item {
+        background: var(--bg-tertiary);
+        border-left-color: #60a5fa;
+    }
+    
+    .event-item.pending { border-left-color: #f59e0b; }
+    .event-item.approved { border-left-color: #10b981; }
+    .event-item.admin { border-left-color: #10b981; }
+    .event-item.payment { border-left-color: #ec7063; }
+    
+    .event-title {
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 4px;
+    }
+    
+    html.dark-mode .event-title {
+        color: var(--text-primary);
+    }
+    
+    .event-meta {
+        color: #64748b;
+        font-size: 12px;
+    }
+    
+    html.dark-mode .event-meta {
+        color: var(--text-secondary);
+    }
+    
+    .event-status-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 700;
+        margin-top: 4px;
+        text-transform: uppercase;
+    }
+    
+    .event-status-badge.pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    
+    .event-status-badge.approved {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    
+    .add-event-form {
+        display: grid;
+        gap: 12px;
+    }
+    
+    .form-group-mini {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .form-group-mini label {
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 4px;
+        color: #1e293b;
+    }
+    
+    html.dark-mode .form-group-mini label {
+        color: var(--text-primary);
+    }
+    
+    .form-group-mini input,
+    .form-group-mini select,
+    .form-group-mini textarea {
+        padding: 8px;
+        border: 2px solid #e2e8f0;
+        border-radius: 6px;
+        font-family: 'Inter', sans-serif;
+        font-size: 12px;
+    }
+    
+    html.dark-mode .form-group-mini input,
+    html.dark-mode .form-group-mini select,
+    html.dark-mode .form-group-mini textarea {
+        background: var(--bg-tertiary);
+        border-color: var(--border-color);
+        color: var(--text-primary);
+    }
+    
+    .form-group-mini input:focus,
+    .form-group-mini select:focus,
+    .form-group-mini textarea:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+    
+    .request-event-btn {
+        padding: 10px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+    
+    .request-event-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    .legend {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        font-size: 12px;
+        margin-top: 16px;
+    }
+    
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .legend-color {
+        width: 12px;
+        height: 12px;
+        border-radius: 3px;
+    }
+
+    /* Mobile Responsive Calendar Styles */
+    @media (max-width: 767px) {
+        .calendar-grid {
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        .calendar-day-header {
+            padding: 8px 0;
+            font-size: 11px;
+        }
+
+        .calendar-day {
+            aspect-ratio: auto;
+            min-height: 60px;
+            padding: 6px 4px;
+            font-size: 11px;
+            border: 1px solid #e2e8f0;
+        }
+
+        html.dark-mode .calendar-day {
+            border-color: var(--border-color);
+        }
+
+        .calendar-day-number {
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .calendar-day-events {
+            gap: 1px;
+            margin-top: 2px;
+            font-size: 8px;
+        }
+
+        .event-item-mini {
+            padding: 1px 2px;
+            font-size: 8px;
+            border-radius: 2px;
+        }
+
+        .event-dot {
+            width: 5px;
+            height: 5px;
+        }
+
+        .sidebar-section {
+            margin-bottom: 16px;
+            padding: 16px;
+        }
+
+        .sidebar-section h3 {
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .event-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 12px;
+        }
+
+        .event-title {
+            font-size: 13px;
+        }
+
+        .legend {
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 11px;
+            margin-top: 12px;
+        }
+
+        .legend-item {
+            gap: 6px;
+        }
+
+        .legend-color {
+            width: 10px;
+            height: 10px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .calendar-day {
+            min-height: 55px;
+            padding: 4px 3px;
+            font-size: 10px;
+        }
+
+        .calendar-day-number {
+            font-size: 11px;
+            margin-bottom: 1px;
+        }
+
+        .calendar-day-events {
+            gap: 0px;
+            margin-top: 1px;
+        }
+
+        .event-item-mini {
+            padding: 1px 2px;
+            font-size: 7px;
+        }
+
+        .event-dot {
+            width: 4px;
+            height: 4px;
+        }
+
+        .sidebar-section {
+            padding: 12px;
+        }
+
+        .event-item {
+            padding: 8px;
+            margin-bottom: 8px;
+        }
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            max-height: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            max-height: 3000px;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 1;
+            max-height: 3000px;
+            transform: translateY(0);
+        }
+        to {
+            opacity: 0;
+            max-height: 0;
+            transform: translateY(-20px);
+        }
+    }
+</style>
+
+<div class="tenant-calendar-container">
+    <!-- Main Calendar -->
+    <div class="calendar-wrapper">
+        <div class="calendar-header">
+            <h2 id="monthYear">January 2026</h2>
+            <div class="calendar-nav">
+                <button id="prevMonth">← Prev</button>
+                <button id="today">Today</button>
+                <button id="nextMonth">Next →</button>
+            </div>
+        </div>
+        
+        <div class="calendar-grid" id="calendar">
+            <!-- Calendar will be generated by JavaScript -->
+        </div>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: #10b981;"></div>
+                <span>Admin Event</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #3b82f6;"></div>
+                <span>Your Event</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #f59e0b;"></div>
+                <span>Pending Request</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #ec7063;"></div>
+                <span>Payment Due</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar -->
+    <div>
+        <!-- Request Event Section -->
+        <div class="sidebar-section">
+            <h3>📝 Request Event</h3>
+            <form method="post" action="{% url 'request_event' %}" class="add-event-form">
+                {% csrf_token %}
+                <div class="form-group-mini">
+                    <label>Event Title</label>
+                    <input type="text" name="title" required placeholder="What's the event?" />
+                </div>
+                <div class="form-group-mini">
+                    <label>Date</label>
+                    <input type="date" name="event_date" required />
+                </div>
+                <div class="form-group-mini">
+                    <label>Type</label>
+                    <select name="event_type">
+                        <option value="other">Other</option>
+                        <option value="maintenance">Maintenance Request</option>
+                        <option value="inspection">Inspection</option>
+                    </select>
+                </div>
+                <div class="form-group-mini">
+                    <label>Description</label>
+                    <textarea name="description" placeholder="More details..." rows="2"></textarea>
+                </div>
+                <button type="submit" class="request-event-btn">Request Event</button>
+            </form>
+            <p style="font-size: 12px; color: #64748b; margin-top: 12px;">Your request will be reviewed by the admin before being added to the calendar.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Day Modal -->
+<div id="dayModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1200; align-items:center; justify-content:center;"> 
+    <div style="background:white; width:90%; max-width:720px; border-radius:12px; padding:18px; position:relative;">
+        <button id="closeDayModal" style="position:absolute; right:12px; top:12px;">✕</button>
+        <h3 id="modalDateTitle">Events</h3>
+        <div id="modalEventsList"></div>
+        <div id="modalEditArea" style="display:none; margin-top:12px;">
+            <h4>Edit Event</h4>
+            <form id="modalEditForm">
+                <input type="hidden" name="event_id" />
+                <div style="display:grid; gap:8px;">
+                    <input name="title" placeholder="Title" required />
+                    <input name="event_date" type="date" required />
+                    <textarea name="description" rows="3" placeholder="Description"></textarea>
+                    <div style="display:flex; gap:8px;">
+                        <button type="submit">Save</button>
+                        <button type="button" id="cancelEditBtn">Cancel</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    let calendarEvents = [];
+    const todayDate = new Date('{{ today }}');
+    let currentDate = new Date(todayDate);
+
+    // Helper to get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    async function fetchEvents() {
+        try {
+            const res = await fetch('/api/calendar/events/');
+            if (!res.ok) throw new Error('Failed to fetch events')
+            const data = await res.json();
+            calendarEvents = data.events || [];
+            renderCalendar();
+        } catch (e) {
+            console.error(e);
+        }
+    }
+    
+    function renderCalendar() {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        
+        // Update month/year display
+        const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                        'July', 'August', 'September', 'October', 'November', 'December'];
+        document.getElementById('monthYear').textContent = `${months[month]} ${year}`;
+        
+        // Get first day and number of days
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const daysInPrevMonth = new Date(year, month, 0).getDate();
+        
+        const calendar = document.getElementById('calendar');
+        calendar.innerHTML = '';
+        
+        // Add day headers
+        const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        dayHeaders.forEach(day => {
+            const header = document.createElement('div');
+            header.className = 'calendar-day-header';
+            header.textContent = day;
+            calendar.appendChild(header);
+        });
+        
+        // Add previous month's days
+        for (let i = firstDay - 1; i >= 0; i--) {
+            const day = document.createElement('div');
+            day.className = 'calendar-day';
+            day.style.opacity = '0.5';
+            day.textContent = daysInPrevMonth - i;
+            calendar.appendChild(day);
+        }
+        
+        // Add current month's days
+        for (let date = 1; date <= daysInMonth; date++) {
+            const day = document.createElement('div');
+            day.className = 'calendar-day';
+            
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
+            const isToday = dateStr === todayDate.toISOString().split('T')[0];
+            
+            if (isToday) day.classList.add('today');
+            
+            // Add date number
+            const dateNum = document.createElement('div');
+            dateNum.className = 'calendar-day-number';
+            dateNum.textContent = date;
+            day.appendChild(dateNum);
+            
+            // Add event items (with titles instead of just dots)
+            const eventsOnDate = calendarEvents.filter(e => e.date === dateStr);
+            if (eventsOnDate.length > 0) {
+                const eventDots = document.createElement('div');
+                eventDots.className = 'calendar-day-events';
+                eventsOnDate.slice(0, 2).forEach(event => {
+                    const eventItem = document.createElement('div');
+                    eventItem.className = `event-item-mini ${event.type}`;
+                    // Extract clean title without prefix markers
+                    let title = event.title.replace(/^\[[^\]]+\]\s*/,'').replace(/^[✓⏳💳]\s*/,'');
+                    eventItem.textContent = title.substring(0, 15);
+                    eventItem.title = event.title;
+                    eventItem.style.cursor = 'pointer';
+                    eventItem.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        openDayModal(dateStr);
+                    });
+                    eventDots.appendChild(eventItem);
+                });
+                if (eventsOnDate.length > 2) {
+                    const more = document.createElement('div');
+                    more.className = 'event-item-mini';
+                    more.style.background = '#94a3b8';
+                    more.textContent = `+${eventsOnDate.length - 2}`;
+                    more.style.cursor = 'pointer';
+                    more.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        openDayModal(dateStr);
+                    });
+                    eventDots.appendChild(more);
+                }
+                day.appendChild(eventDots);
+            }
+            
+            // Attach click to open day modal
+            day.addEventListener('click', () => openDayModal(dateStr));
+            calendar.appendChild(day);
+        }
+        
+        // Add next month's days
+        const totalCells = calendar.children.length - 7; // Subtract headers
+        const remainingCells = 42 - totalCells;
+        for (let i = 1; i <= remainingCells; i++) {
+            const day = document.createElement('div');
+            day.className = 'calendar-day';
+            day.style.opacity = '0.5';
+            day.textContent = i;
+            calendar.appendChild(day);
+        }
+    }
+    
+    // Navigation
+    document.getElementById('prevMonth').addEventListener('click', () => {
+        currentDate.setMonth(currentDate.getMonth() - 1);
+        renderCalendar();
+    });
+    
+    document.getElementById('nextMonth').addEventListener('click', () => {
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        renderCalendar();
+    });
+    
+    document.getElementById('today').addEventListener('click', () => {
+        currentDate = new Date(todayDate);
+        renderCalendar();
+    });
+    
+    // Initial render: fetch events then render
+    fetchEvents();
+
+    // AJAX submit for tenant request form
+    const tenantForm = document.querySelector("form[action='{% url 'request_event' %}']");
+    if (tenantForm) {
+        tenantForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(tenantForm);
+            try {
+                const res = await fetch('/api/calendar/events/create/', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                    body: formData
+                });
+                const json = await res.json();
+                if (res.ok) {
+                    await fetchEvents();
+                    tenantForm.reset();
+                    alert('Request sent to admin for approval!');
+                } else {
+                    alert(json.error || 'Error submitting request');
+                }
+            } catch (err) { console.error(err); alert('Network error') }
+        });
+    }
+
+    const currentUser = '{{ user.username }}';
+
+    function clearModal() {
+        document.getElementById('modalEventsList').innerHTML = '';
+        document.getElementById('modalEditArea').style.display = 'none';
+    }
+
+    function openDayModal(dateStr) {
+        const modal = document.getElementById('dayModal');
+        const title = document.getElementById('modalDateTitle');
+        const list = document.getElementById('modalEventsList');
+        title.textContent = new Date(dateStr).toDateString();
+        list.innerHTML = '';
+
+        const eventsOnDate = calendarEvents.filter(e => e.date === dateStr);
+        if (eventsOnDate.length === 0) {
+            list.innerHTML = '<p>No events</p>';
+        }
+
+        eventsOnDate.forEach(ev => {
+            const item = document.createElement('div');
+            item.className = 'event-item';
+            const t = document.createElement('div'); t.className = 'event-title'; t.textContent = ev.title;
+            const m = document.createElement('div'); m.className = 'event-meta'; m.textContent = ev.description || '';
+            item.appendChild(t); item.appendChild(m);
+
+            const meta2 = document.createElement('div'); meta2.className = 'event-meta'; meta2.textContent = ev.status || '';
+            item.appendChild(meta2);
+
+            // If current user owns the event, show edit/delete
+            if (ev.requested_by && ev.requested_by === currentUser) {
+                const btns = document.createElement('div'); btns.style.marginTop = '8px'; btns.style.display = 'flex'; btns.style.gap = '8px';
+                const editBtn = document.createElement('button'); editBtn.textContent = 'Edit';
+                editBtn.addEventListener('click', () => startEditEvent(ev));
+                const delBtn = document.createElement('button'); delBtn.textContent = 'Delete';
+                delBtn.addEventListener('click', () => deleteEvent(ev.id));
+                btns.appendChild(editBtn); btns.appendChild(delBtn);
+                item.appendChild(btns);
+            }
+
+            list.appendChild(item);
+        });
+
+        modal.style.display = 'flex';
+    }
+
+    document.getElementById('closeDayModal').addEventListener('click', () => {
+        document.getElementById('dayModal').style.display = 'none';
+        clearModal();
+    });
+
+    function startEditEvent(ev) {
+        const editArea = document.getElementById('modalEditArea');
+        const form = document.getElementById('modalEditForm');
+        form.event_id.value = ev.id;
+        form.title.value = ev.title.replace(/^\[[^\]]+\]\s*/,'');
+        form.event_date.value = ev.date;
+        form.description.value = ev.description || '';
+        editArea.style.display = 'block';
+    }
+
+    document.getElementById('cancelEditBtn').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('modalEditArea').style.display = 'none'; });
+
+    document.getElementById('modalEditForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const id = form.event_id.value;
+        const fd = new FormData(form);
+        try {
+            const res = await fetch(`/api/calendar/events/${id}/edit/`, {
+                method: 'POST', headers: { 'X-CSRFToken': getCookie('csrftoken') }, body: fd
+            });
+            const json = await res.json();
+            if (res.ok) {
+                await fetchEvents();
+                document.getElementById('modalEditArea').style.display = 'none';
+                alert('Event updated');
+            } else alert(json.error || 'Update failed');
+        } catch (err) { console.error(err); alert('Network error') }
+    });
+
+    async function deleteEvent(id) {
+        if (!confirm('Delete this event?')) return;
+        try {
+            const res = await fetch(`/api/calendar/events/${id}/delete/`, {
+                method: 'POST', headers: { 'X-CSRFToken': getCookie('csrftoken') }
+            });
+            const json = await res.json();
+            if (res.ok) { await fetchEvents(); alert('Deleted'); }
+            else alert(json.error || 'Delete failed');
+        } catch (err) { console.error(err); alert('Network error') }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        localStorage.setItem('tenantAgendaExpanded', 'false');
+        const content = document.getElementById('agenda-content');
+        if (content) content.style.display = 'none';
+        const btn = document.getElementById('toggle-agenda-btn');
+        if (btn) btn.textContent = 'Show';
+    });
+
+    document.querySelectorAll('.sidebar-link').forEach(link => {
+        link.addEventListener('click', () => {
+            localStorage.setItem('tenantAgendaExpanded', 'false');
+        });
+    });
+</script>
+{% endblock %}

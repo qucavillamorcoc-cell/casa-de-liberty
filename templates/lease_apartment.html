@@ -1,0 +1,164 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}Lease Apartment {{ apartment.unit_number }} - Casa de Liberty{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Lease Apartment {{ apartment.unit_number }}</h1>
+    <div class="user-profile">
+        <div class="user-info" style="text-align: right;">
+            <p>{{ request.user.username }}</p>
+            <span>Tenant</span>
+        </div>
+        <div class="user-avatar">{{ request.user.username.0|upper }}</div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+    <!-- Apartment Details -->
+    <div class="section">
+        <h3 style="font-size: 18px; font-weight: 600; margin: 0 0 20px 0;">Apartment Details</h3>
+        
+        <!-- Apartment Image -->
+        <div style="height: 250px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; font-size: 80px; border-radius: 12px; margin-bottom: 24px;">
+            🏠
+        </div>
+        
+        <!-- Apartment Info -->
+        <div style="display: grid; gap: 16px;">
+            <div style="background: #f8fafc; padding: 16px; border-radius: 8px;">
+                <p style="font-size: 12px; color: #64748b; margin: 0 0 4px 0; font-weight: 600;">APARTMENT TYPE</p>
+                <p style="font-size: 16px; font-weight: 600; color: #1e293b; margin: 0;">{{ apartment.get_apartment_type_display }}</p>
+            </div>
+            
+            <div style="background: #f8fafc; padding: 16px; border-radius: 8px;">
+                <p style="font-size: 12px; color: #64748b; margin: 0 0 4px 0; font-weight: 600;">MONTHLY RENT</p>
+                <p style="font-size: 24px; font-weight: 700; color: #3b82f6; margin: 0;">₱{{ apartment.monthly_rent }}</p>
+            </div>
+            
+            <div style="background: #f8fafc; padding: 16px; border-radius: 8px;">
+                <p style="font-size: 12px; color: #64748b; margin: 0 0 4px 0; font-weight: 600;">MAXIMUM OCCUPANTS</p>
+                <p style="font-size: 16px; font-weight: 600; color: #1e293b; margin: 0;">👥 {{ apartment.max_occupants }} occupants</p>
+            </div>
+            
+            <div style="background: #f8fafc; padding: 16px; border-radius: 8px;">
+                <p style="font-size: 12px; color: #64748b; margin: 0 0 8px 0; font-weight: 600;">DESCRIPTION</p>
+                <p style="font-size: 14px; color: #475569; margin: 0; line-height: 1.6;">{{ apartment.description }}</p>
+            </div>
+            
+            <div style="background: #f8fafc; padding: 16px; border-radius: 8px;">
+                <p style="font-size: 12px; color: #64748b; margin: 0 0 8px 0; font-weight: 600;">AMENITIES</p>
+                <p style="font-size: 14px; color: #475569; margin: 0;">{{ apartment.amenities }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Lease Form -->
+    <div class="section">
+        <h3 style="font-size: 18px; font-weight: 600; margin: 0 0 20px 0;">Lease Information</h3>
+        
+        <form method="post" id="leaseForm">
+            {% csrf_token %}
+            
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Move-in Date <span style="color: #ef4444;">*</span></label>
+                <input type="date" name="move_in" id="move_in" required style="width: 100%; padding: 12px 14px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Move-out Date <span style="color: #999;">(Optional - leave blank for ongoing lease)</span></label>
+                <input type="date" name="move_out" id="move_out" style="width: 100%; padding: 12px 14px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
+            </div>
+            
+            <!-- Lease Type Selection -->
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Lease Type</label>
+                <select name="lease_type" id="lease_type" style="width: 100%; padding: 12px 14px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
+                    <option value="fixed_term">Fixed Term Lease</option>
+                    <option value="month_to_month">Month-to-Month Lease</option>
+                </select>
+            </div>
+            
+            <!-- Price Calculation -->
+            <div id="priceCalculation" style="background: #f0f9ff; padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 2px solid #3b82f6; display: none;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                    <span style="color: #1e40af; font-weight: 500;">Lease Duration:</span>
+                    <span style="color: #1e40af; font-weight: 700;" id="leaseDuration">0 months</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding-top: 12px; border-top: 1px solid #bfdbfe;">
+                    <span style="color: #1e40af; font-weight: 600; font-size: 16px;">Total Lease Cost:</span>
+                    <span style="color: #1e40af; font-weight: 700; font-size: 20px;">₱<span id="totalPrice">0</span></span>
+                </div>
+                <div id="availabilityMessage" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #bfdbfe;"></div>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Number of Occupants <span style="color: #ef4444;">*</span></label>
+                <input type="number" name="num_occupants" id="num_occupants" min="1" max="{{ apartment.max_occupants }}" required value="1" style="width: 100%; padding: 12px 14px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
+            </div>
+            
+            <div style="margin-bottom: 24px;">
+                <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Special Requests (Optional)</label>
+                <textarea name="special_requests" id="special_requests" rows="4" placeholder="Any special requirements or requests..." style="width: 100%; padding: 12px 14px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; resize: vertical; font-family: inherit;"></textarea>
+            </div>
+            
+            <button type="submit" id="submitBtn" class="btn btn-primary" style="width: 100%; padding: 14px;">
+                Confirm Lease
+            </button>
+        </form>
+        
+        <div style="margin-top: 16px; text-align: center;">
+            <a href="{% url 'apartments' %}" style="color: #64748b; font-size: 14px; text-decoration: none;">← Cancel and go back</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    const apartmentId = {{ apartment.id }};
+    const monthlyRent = {{ apartment.monthly_rent }};
+    const today = new Date().toISOString().split('T')[0];
+    
+    document.getElementById('move_in').min = today;
+    document.getElementById('move_out').min = today;
+    
+    document.getElementById('move_in').addEventListener('change', function() {
+        const moveInDate = new Date(this.value);
+        moveInDate.setDate(moveInDate.getDate() + 1);
+        document.getElementById('move_out').min = moveInDate.toISOString().split('T')[0];
+        calculateLease();
+    });
+    
+    document.getElementById('move_out').addEventListener('change', calculateLease);
+    
+    function calculateLease() {
+        const moveIn = document.getElementById('move_in').value;
+        const moveOut = document.getElementById('move_out').value;
+        
+        if (!moveIn) return;
+        
+        const moveInDate = new Date(moveIn);
+        const calcDiv = document.getElementById('priceCalculation');
+        const availMsg = document.getElementById('availabilityMessage');
+        
+        calcDiv.style.display = 'block';
+        
+        if (moveOut) {
+            // Fixed term lease with end date
+            const moveOutDate = new Date(moveOut);
+            const diffTime = Math.abs(moveOutDate - moveInDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            const months = Math.ceil(diffDays / 30.44); // Average days per month
+            const totalPrice = months * monthlyRent;
+            
+            document.getElementById('leaseDuration').textContent = months + ' months';
+            document.getElementById('totalPrice').textContent = totalPrice.toFixed(2);
+            availMsg.innerHTML = '<span style="color: #10b981; font-weight: 600;">✅ Fixed-term lease from ' + moveIn + ' to ' + moveOut + '</span>';
+        } else {
+            // Month-to-month ongoing lease
+            document.getElementById('leaseDuration').textContent = 'Ongoing (month-to-month)';
+            document.getElementById('totalPrice').textContent = monthlyRent.toFixed(2);
+            availMsg.innerHTML = '<span style="color: #10b981; font-weight: 600;">✅ Ongoing month-to-month lease starting ' + moveIn + '</span>';
+        }
+    }
+</script>
+{% endblock %}

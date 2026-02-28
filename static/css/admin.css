@@ -1,0 +1,223 @@
+/* Django Admin Dark Theme Customization */
+
+/* File Input Styling */
+input[type="file"] {
+    display: block;
+    padding: 10px;
+    border: 1px solid #3d4a5c;
+    border-radius: 4px;
+    background-color: #1f2937;
+    color: #e5e7eb;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+input[type="file"]:hover {
+    border-color: #667eea;
+    background-color: #2d3748;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+input[type="file"]:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+    background-color: #2d3748;
+}
+
+/* Style for the file input wrapper */
+.field-photo,
+.field-image_url {
+    margin-bottom: 20px;
+}
+
+/* Label styling */
+.field-photo label,
+.field-image_url label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #e5e7eb;
+    font-size: 13px;
+}
+
+/* Clearable file input */
+.clearable-file-input {
+    display: inline-block;
+}
+
+/* Upload button styling for file input */
+input[type="file"]::file-selector-button {
+    padding: 6px 12px;
+    background-color: #667eea;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    margin-right: 10px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 13px;
+}
+
+input[type="file"]::file-selector-button:hover {
+    background-color: #5568d3;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+}
+
+input[type="file"]::file-selector-button:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 4px rgba(102, 126, 234, 0.2);
+}
+
+/* Alternative for browsers that don't support ::file-selector-button */
+input[type="file"]::-webkit-file-upload-button {
+    padding: 6px 12px;
+    background-color: #667eea;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    margin-right: 10px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 13px;
+}
+
+input[type="file"]::-webkit-file-upload-button:hover {
+    background-color: #5568d3;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+}
+
+/* Inline form styling for photo inputs */
+.inline-group {
+    background-color: #1f2937;
+    border: 1px solid #3d4a5c;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 10px;
+}
+
+.inline-group .field-photo {
+    margin-bottom: 15px;
+}
+
+.inline-group label {
+    color: #e5e7eb;
+}
+
+/* Preview image styling */
+img[class*="preview"],
+.preview-image {
+    max-width: 200px;
+    height: auto;
+    margin-top: 10px;
+    border-radius: 4px;
+    border: 1px solid #3d4a5c;
+    display: block;
+}
+
+/* Clear checkbox styling */
+input[type="checkbox"].clear {
+    margin-right: 6px;
+}
+
+input[type="checkbox"].clear + label {
+    display: inline;
+    margin-left: 0;
+}
+
+/* Tabular inline styling */
+.inline-related {
+    background-color: #111827;
+    border: 1px solid #3d4a5c;
+}
+
+.inline-related h3 {
+    background-color: #1f2937;
+    border-bottom: 1px solid #3d4a5c;
+    color: #e5e7eb;
+    padding: 12px;
+}
+
+.inline-related fieldset {
+    background-color: #0f1419;
+    border: none;
+    padding: 15px;
+}
+
+.inline-related table {
+    background-color: #0f1419;
+}
+
+.inline-related tbody tr {
+    border-bottom: 1px solid #2d3748;
+}
+
+.inline-related tbody tr:hover {
+    background-color: #1f2937;
+}
+
+.inline-related td {
+    padding: 12px;
+    color: #d1d5db;
+}
+
+.inline-related td input[type="text"],
+.inline-related td input[type="number"],
+.inline-related td select {
+    background-color: #1f2937;
+    color: #e5e7eb;
+    border: 1px solid #3d4a5c;
+    border-radius: 4px;
+    padding: 6px 10px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.inline-related td input[type="text"]:focus,
+.inline-related td input[type="number"]:focus,
+.inline-related td select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+    background-color: #2d3748;
+}
+
+/* Add button styling */
+.add-row a {
+    color: #667eea;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.add-row a:hover {
+    color: #5568d3;
+}
+
+/* Delete icon styling */
+.delete {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="%23ef4444"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>') no-repeat center;
+    background-size: contain;
+}
+
+/* Help text styling */
+.help-text,
+p.help {
+    color: #9ca3af;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+/* Success message styling */
+.success {
+    background-color: #065f46 !important;
+    border-color: #059669 !important;
+    color: #d1fae5 !important;
+}

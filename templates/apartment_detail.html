@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .photo-carousel {
+        position: relative;
+        width: 100%;
+        max-width: 500px;
+        margin-bottom: 30px;
+        border-radius: 8px;
+        overflow: hidden;
+        background-color: #f0f0f0;
+    }
+    
+    .carousel-container {
+        position: relative;
+        width: 100%;
+        padding-bottom: 100%; /* 1:1 aspect ratio */
+    }
+    
+    .carousel-items {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+    
+    .carousel-item {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        transition: opacity 0.5s ease-in-out;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .carousel-item.active {
+        opacity: 1;
+    }
+    
+    .carousel-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .carousel-item .no-photo {
+        font-size: 18px;
+        color: #999;
+    }
+    
+    .carousel-controls {
+        position: absolute;
+        bottom: 15px;
+        right: 15px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        z-index: 10;
+    }
+    
+    .photo-counter {
+        background-color: rgba(0, 0, 0, 0.6);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 14px;
+        min-width: 50px;
+        text-align: center;
+    }
+    
+    .carousel-next-btn {
+        background-color: #667eea;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: bold;
+        transition: background-color 0.3s;
+    }
+    
+    .carousel-next-btn:hover {
+        background-color: #5568d3;
+    }
+    
+    .carousel-next-btn:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+    }
+</style>
+
+<h2>Apartment Unit {{ apartment.unit_number }} Details</h2>
+
+<!-- Photo Carousel Section -->
+<div class="photo-carousel">
+    <div class="carousel-container">
+        <div class="carousel-items" id="carouselItems">
+            {% if apartment.photos.count %}
+                {% for photo in apartment.photos.all %}
+                    {% if photo.display_url %}
+                    <div class="carousel-item {% if forloop.first %}active{% endif %}" data-index="{{ forloop.counter0 }}">
+                        <img src="{{ photo.display_url }}" alt="{% if photo.caption %}{{ photo.caption }}{% else %}Apartment {{ apartment.unit_number }} - Photo {{ forloop.counter }}{% endif %}" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\"no-photo\">Photo unavailable</div>'">
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                <div class="carousel-item active">
+                    <div class="no-photo">No photos available</div>
+                </div>
+            {% endif %}
+        </div>
+        
+        {% if apartment.photos.count > 0 %}
+            <div class="carousel-controls">
+                <div class="photo-counter"><span id="currentPhoto">1</span>/<span id="totalPhotos">{{ apartment.photos.count }}</span></div>
+                <button class="carousel-next-btn" id="nextPhotoBtn" onclick="nextPhoto()">Next</button>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div style="text-align: left;">
+    <h3>{{ apartment.get_apartment_type_display }}</h3>
+    
+    <p><strong>Monthly Rent:</strong> ₱{{ apartment.monthly_rent }}</p>
+    <p><strong>Max Occupants:</strong> Up to {{ apartment.max_occupants }} occupants</p>
+    <p><strong>Status:</strong> {% if apartment.is_available %}Available for Lease{% else %}Currently Rented{% endif %}</p>
+    
+    <h4 style="margin-top: 20px;">Description</h4>
+    <p>{{ apartment.description }}</p>
+    
+    <h4 style="margin-top: 20px;">Amenities</h4>
+    <p>{{ apartment.amenities }}</p>
+    
+    {% if apartment.is_available %}
+        <a href="{% url 'lease_apartment' apartment.id %}">
+            <button style="margin-top: 20px;">Lease This Apartment</button>
+        </a>
+    {% else %}
+        <button style="margin-top: 20px; background-color: #999;" disabled>Currently Rented</button>
+    {% endif %}
+</div>
+
+<br>
+<a href="{% url 'apartments' %}">← Back to Apartments</a>
+
+<script>
+    let currentPhotoIndex = 0;
+    const carouselItems = document.querySelectorAll('.carousel-item');
+    const totalPhotos = carouselItems.length;
+    
+    function showPhoto(index) {
+        // Remove active class from all items
+        carouselItems.forEach(item => item.classList.remove('active'));
+        
+        // Add active class to current item
+        if (carouselItems[index]) {
+            carouselItems[index].classList.add('active');
+            // Update counter
+            const currentPhotoElement = document.getElementById('currentPhoto');
+            if (currentPhotoElement) {
+                currentPhotoElement.textContent = index + 1;
+            }
+        }
+    }
+    
+    function nextPhoto() {
+        if (totalPhotos > 0) {
+            currentPhotoIndex = (currentPhotoIndex + 1) % totalPhotos;
+            showPhoto(currentPhotoIndex);
+        }
+    }
+</script>
+{% endblock %}

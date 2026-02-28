@@ -1,0 +1,124 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}Rooms - Casa de Liberty{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Available Rooms</h1>
+    <div class="user-profile">
+        <div class="user-info" style="text-align: right;">
+            <p>{{ request.user.username }}</p>
+            <span>{% if user.is_staff %}Admin{% else %}Tenant{% endif %}</span>
+        </div>
+        <div class="user-avatar">{{ request.user.username.0|upper }}</div>
+    </div>
+</div>
+
+<!-- Search Filter Card -->
+<div class="section">
+    <h3 style="font-size: 18px; font-weight: 600; margin: 0 0 20px 0;">Search Availability</h3>
+    <form method="get" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 16px; align-items: end;">
+        <div style="margin: 0;">
+            <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Check-in Date</label>
+            <input type="date" name="check_in" value="{{ check_in }}" required style="width: 100%; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
+        </div>
+        <div style="margin: 0;">
+            <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">Check-out Date</label>
+            <input type="date" name="check_out" value="{{ check_out }}" required style="width: 100%; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
+        </div>
+        <button type="submit" class="btn btn-primary" style="height: 42px; padding: 0 24px;">
+            Search Rooms
+        </button>
+    </form>
+    
+    {% if filtered %}
+    <div style="margin-top: 16px; padding: 12px 16px; background: #d1fae5; border-radius: 8px; border-left: 4px solid #10b981; display: flex; justify-content: space-between; align-items: center;">
+        <p style="margin: 0; color: #065f46; font-size: 14px; font-weight: 500;">
+            ✅ Showing available rooms from {{ check_in }} to {{ check_out }}
+        </p>
+        <a href="{% url 'rooms' %}" style="color: #047857; font-weight: 600; text-decoration: none;">Clear</a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Rooms Grid -->
+{% if rooms %}
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 24px;">
+    {% for room in rooms %}
+    <div style="background: white; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; transition: all 0.3s ease;">
+        <!-- Room Image -->
+        <div style="height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; font-size: 64px;">
+            🏨
+        </div>
+        
+        <!-- Room Content -->
+        <div style="padding: 24px;">
+            <!-- Room Header -->
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                <div>
+                    <h3 style="font-size: 20px; font-weight: 600; color: #1e293b; margin: 0 0 4px 0;">Room {{ room.room_number }}</h3>
+                    <p style="font-size: 13px; color: #64748b; margin: 0;">{{ room.get_room_type_display }}</p>
+                </div>
+                <span class="badge badge-success">Available</span>
+            </div>
+            
+            <!-- Price -->
+            <div style="margin: 16px 0;">
+                <span style="font-size: 28px; font-weight: 700; color: #3b82f6;">₱{{ room.price_per_night }}</span>
+                <span style="font-size: 14px; color: #64748b;">/night</span>
+            </div>
+            
+            <!-- Room Details -->
+            <div style="padding: 12px 0; margin: 16px 0; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9;">
+                <div style="display: flex; align-items: center; gap: 8px; color: #64748b; font-size: 14px;">
+                    <span>👥</span>
+                    <span>Up to {{ room.capacity }} guests</span>
+                </div>
+            </div>
+            
+            <!-- Description -->
+            <p style="font-size: 14px; color: #475569; line-height: 1.6; margin: 0 0 12px 0;">{{ room.description }}</p>
+            
+            <!-- Amenities -->
+            <div style="background: #f8fafc; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                <p style="font-size: 12px; color: #64748b; margin: 0 0 4px 0; font-weight: 600;">AMENITIES</p>
+                <p style="font-size: 13px; color: #475569; margin: 0;">{{ room.amenities }}</p>
+            </div>
+            
+            <!-- Book Button -->
+            <a href="{% url 'book_room' room.id %}{% if check_in and check_out %}?check_in={{ check_in }}&check_out={{ check_out }}{% endif %}" style="text-decoration: none;">
+                <button class="btn btn-primary" style="width: 100%;">Book This Room</button>
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="section" style="text-align: center; padding: 80px 20px;">
+    <div style="font-size: 64px; margin-bottom: 16px;">🏨</div>
+    <h3 style="font-size: 20px; font-weight: 600; color: #1e293b; margin: 0 0 8px 0;">
+        {% if filtered %}No Rooms Available{% else %}No Rooms Found{% endif %}
+    </h3>
+    <p style="color: #64748b; margin: 0;">
+        {% if filtered %}Please try different dates{% else %}Check back later for available rooms{% endif %}
+    </p>
+</div>
+{% endif %}
+
+<script>
+    const today = new Date().toISOString().split('T')[0];
+    const checkInInput = document.querySelector('input[name="check_in"]');
+    const checkOutInput = document.querySelector('input[name="check_out"]');
+    
+    if (checkInInput) checkInInput.min = today;
+    if (checkOutInput) checkOutInput.min = today;
+    
+    if (checkInInput) {
+        checkInInput.addEventListener('change', function() {
+            const checkinDate = new Date(this.value);
+            checkinDate.setDate(checkinDate.getDate() + 1);
+            checkOutInput.min = checkinDate.toISOString().split('T')[0];
+        });
+    }
+</script>
+{% endblock %}

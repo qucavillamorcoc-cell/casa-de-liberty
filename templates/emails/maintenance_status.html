@@ -1,0 +1,18 @@
+<html>
+  <body style="font-family: Arial, sans-serif; color: #111827;">
+    <h2>Maintenance Request #{{ maintenance.id }} - {{ action|capfirst }}</h2>
+    <p>Hello {{ maintenance.user.get_full_name|default:maintenance.user.username }},</p>
+    <p>Your maintenance request for <strong>Room {{ maintenance.room.room_number }}</strong> has been <strong>{{ action }}</strong>.</p>
+    {% if notes %}
+    <p><strong>Notes from staff:</strong> {{ notes }}</p>
+    {% endif %}
+    <hr />
+    <p><strong>Request details</strong></p>
+    <ul>
+      <li>Type: {{ maintenance.get_maintenance_type_display }}</li>
+      <li>Priority: {{ maintenance.get_priority_display }}</li>
+      <li>Submitted: {{ maintenance.created_at|date:"M d, Y H:i" }}</li>
+    </ul>
+    <p>Thank you,<br/>Casa de Liberty Team</p>
+  </body>
+</html>

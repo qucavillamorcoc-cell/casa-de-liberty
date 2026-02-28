@@ -1,0 +1,378 @@
+{% extends "base_dashboard.html" %}
+{% block title %}Maintenance Requests - Casa de Liberty{% endblock %}
+
+{% block content %}
+<style>
+    .tenant-maint .tm-grid {
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: 16px;
+        align-items: start;
+    }
+
+    .tenant-maint .tm-priority-group {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .tenant-maint .tm-priority-option {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.12);
+        background: rgba(148, 163, 184, 0.03);
+        cursor: pointer;
+        color: var(--text-primary);
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .tenant-maint .tm-priority-option input {
+        accent-color: #2563eb;
+        margin: 0;
+    }
+
+    .tenant-maint .tm-form-grid {
+        display: grid;
+        gap: 14px;
+    }
+
+    .tenant-maint .tm-field label {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--text-primary);
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .tenant-maint .tm-field small {
+        display: block;
+        margin-top: 6px;
+        color: var(--text-secondary);
+        font-size: 12px;
+        line-height: 1.4;
+    }
+
+    .tenant-maint .tm-form-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-top: 4px;
+    }
+
+    .tenant-maint .tm-metrics {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .tenant-maint .tm-mini {
+        padding: 14px;
+        border-radius: 14px;
+        border: 1px solid rgba(148, 163, 184, 0.08);
+        background: rgba(148, 163, 184, 0.03);
+    }
+
+    .tenant-maint .tm-mini p {
+        margin: 0;
+    }
+
+    .tenant-maint .tm-mini-label {
+        color: var(--text-secondary);
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .tenant-maint .tm-mini-value {
+        margin-top: 8px !important;
+        color: var(--text-primary);
+        font-size: 20px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+    }
+
+    .tenant-maint .tm-list {
+        display: grid;
+        gap: 12px;
+    }
+
+    .tenant-maint .tm-card {
+        border: 1px solid rgba(148, 163, 184, 0.08);
+        background: rgba(148, 163, 184, 0.03);
+        border-radius: 14px;
+        padding: 14px;
+        display: grid;
+        gap: 12px;
+    }
+
+    .tenant-maint .tm-card-head {
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .tenant-maint .tm-card-title {
+        margin: 0;
+        color: var(--text-primary);
+        font-size: 15px;
+        font-weight: 800;
+    }
+
+    .tenant-maint .tm-card-subtitle {
+        margin: 4px 0 0;
+        color: var(--text-secondary);
+        font-size: 12px;
+    }
+
+    .tenant-maint .tm-meta {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .tenant-maint .tm-meta-item {
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: rgba(148, 163, 184, 0.03);
+        border: 1px solid rgba(148, 163, 184, 0.06);
+    }
+
+    .tenant-maint .tm-meta-label {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .tenant-maint .tm-meta-value {
+        margin: 6px 0 0;
+        color: var(--text-primary);
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .tenant-maint .tm-description {
+        margin: 0;
+        color: var(--text-secondary);
+        line-height: 1.55;
+        font-size: 13px;
+        padding: 12px;
+        border-radius: 12px;
+        border-left: 3px solid rgba(59, 130, 246, 0.7);
+        background: rgba(59, 130, 246, 0.06);
+    }
+
+    @media (max-width: 1024px) {
+        .tenant-maint .tm-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .tenant-maint .tm-priority-group,
+        .tenant-maint .tm-metrics,
+        .tenant-maint .tm-meta {
+            grid-template-columns: 1fr;
+        }
+
+        .tenant-maint .tm-form-actions {
+            display: grid;
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<section class="tenant-maint portal-stack">
+    <div class="page-header">
+        <h1 class="page-title">Maintenance Requests</h1>
+        <div class="user-profile">
+            <div class="user-info" style="text-align: right;">
+                <p>{{ request.user.username }}</p>
+                <span>Tenant</span>
+            </div>
+            <div class="user-avatar">{{ request.user.username.0|upper }}</div>
+        </div>
+    </div>
+    <p class="page-subtitle">Submit repair requests and track progress from pending to completed in one place.</p>
+
+    <div class="tm-grid">
+        <div class="portal-panel">
+            <div class="portal-panel-header">
+                <div>
+                    <h2 class="portal-panel-title">Submit a New Request</h2>
+                    <p class="portal-panel-subtitle">Share the issue details and choose a priority level.</p>
+                </div>
+                <span class="portal-badge portal-badge-info">Tenant Support</span>
+            </div>
+            <div class="portal-panel-body">
+                <form method="post" class="tm-form-grid">
+                    {% csrf_token %}
+
+                    <div class="tm-field">
+                        <label for="maintenance_type_select">Type of Maintenance</label>
+                        <select id="maintenance_type_select" name="maintenance_type" required class="input-field">
+                            <option value="">Select maintenance type...</option>
+                            {% for value, label in maintenance_types %}
+                                <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="tm-field">
+                        <label>Priority</label>
+                        <div class="tm-priority-group">
+                            <label class="tm-priority-option">
+                                <input type="radio" name="priority" value="low" checked>
+                                <span>Low</span>
+                            </label>
+                            <label class="tm-priority-option">
+                                <input type="radio" name="priority" value="medium">
+                                <span>Medium</span>
+                            </label>
+                            <label class="tm-priority-option">
+                                <input type="radio" name="priority" value="high">
+                                <span>High</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="tm-field">
+                        <label for="maintenance_description">Description</label>
+                        <textarea id="maintenance_description" name="description" class="input-field" required placeholder="Describe the issue, when it started, and anything that helps staff diagnose it."></textarea>
+                        <small>Be specific so the maintenance team can respond with the right tools and parts.</small>
+                    </div>
+
+                    <div class="tm-form-actions">
+                        <button type="submit" class="btn-luxury btn-luxury-primary">Submit Request</button>
+                        <a href="{% url 'notifications' %}" class="portal-link-btn">View Notifications</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="portal-stack">
+            <div class="portal-panel">
+                <div class="portal-panel-header">
+                    <div>
+                        <h2 class="portal-panel-title">Request Summary</h2>
+                        <p class="portal-panel-subtitle">Current maintenance activity for your account</p>
+                    </div>
+                </div>
+                <div class="portal-panel-body">
+                    <div class="tm-metrics">
+                        <div class="tm-mini">
+                            <p class="tm-mini-label">Total Open</p>
+                            <p class="tm-mini-value">{{ maintenance_counts.total|default:0 }}</p>
+                        </div>
+                        <div class="tm-mini">
+                            <p class="tm-mini-label">Pending</p>
+                            <p class="tm-mini-value">{{ maintenance_counts.pending|default:0 }}</p>
+                        </div>
+                        <div class="tm-mini">
+                            <p class="tm-mini-label">In Progress</p>
+                            <p class="tm-mini-value">{{ maintenance_counts.in_progress|default:0 }}</p>
+                        </div>
+                        <div class="tm-mini">
+                            <p class="tm-mini-label">Completed</p>
+                            <p class="tm-mini-value">{{ maintenance_counts.completed|default:0 }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="portal-panel">
+                <div class="portal-panel-header">
+                    <div>
+                        <h2 class="portal-panel-title">Tips for Faster Resolution</h2>
+                        <p class="portal-panel-subtitle">What helps the team respond quickly</p>
+                    </div>
+                </div>
+                <div class="portal-panel-body">
+                    <ul class="tp-inline-list" style="display: grid; gap: 10px; margin: 0; padding: 0; list-style: none;">
+                        <li style="padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(148,163,184,.08); background: rgba(148,163,184,.03); color: var(--text-secondary);">Add clear details about symptoms and timing.</li>
+                        <li style="padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(148,163,184,.08); background: rgba(148,163,184,.03); color: var(--text-secondary);">Use High priority only for urgent or unsafe issues.</li>
+                        <li style="padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(148,163,184,.08); background: rgba(148,163,184,.03); color: var(--text-secondary);">Check notifications for status updates from staff.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="portal-panel">
+        <div class="portal-panel-header">
+            <div>
+                <h2 class="portal-panel-title">Your Requests</h2>
+                <p class="portal-panel-subtitle">Recent maintenance submissions and their current status</p>
+            </div>
+            <span class="portal-badge portal-badge-info">{{ maintenance_requests|length }} request{{ maintenance_requests|length|pluralize }}</span>
+        </div>
+        <div class="portal-panel-body">
+            {% if maintenance_requests %}
+                <div class="tm-list">
+                    {% for request in maintenance_requests %}
+                        <article class="tm-card">
+                            <div class="tm-card-head">
+                                <div>
+                                    <h3 class="tm-card-title">Request #{{ request.id }} - {{ request.get_maintenance_type_display }}</h3>
+                                    <p class="tm-card-subtitle">
+                                        {% if request.apartment %}Apartment {{ request.apartment.unit_number }}{% else %}General maintenance{% endif %}
+                                    </p>
+                                </div>
+                                <div style="display: grid; gap: 8px; justify-items: end;">
+                                    {% if request.status == 'completed' %}
+                                        <span class="portal-badge portal-badge-success">{{ request.get_status_display }}</span>
+                                    {% elif request.status == 'in_progress' %}
+                                        <span class="portal-badge portal-badge-info">{{ request.get_status_display }}</span>
+                                    {% elif request.status == 'cancelled' %}
+                                        <span class="portal-badge portal-badge-danger">{{ request.get_status_display }}</span>
+                                    {% else %}
+                                        <span class="portal-badge portal-badge-warn">{{ request.get_status_display }}</span>
+                                    {% endif %}
+
+                                    {% if request.priority == 'high' %}
+                                        <span class="portal-badge portal-badge-danger">High Priority</span>
+                                    {% elif request.priority == 'medium' %}
+                                        <span class="portal-badge portal-badge-warn">Medium Priority</span>
+                                    {% else %}
+                                        <span class="portal-badge">Low Priority</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="tm-meta">
+                                <div class="tm-meta-item">
+                                    <p class="tm-meta-label">Submitted</p>
+                                    <p class="tm-meta-value">{{ request.created_at|date:"M d, Y" }}</p>
+                                </div>
+                                <div class="tm-meta-item">
+                                    <p class="tm-meta-label">Last Update</p>
+                                    <p class="tm-meta-value">{{ request.updated_at|date:"M d, Y"|default:"N/A" }}</p>
+                                </div>
+                            </div>
+
+                            <p class="tm-description">{{ request.description }}</p>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="portal-empty">
+                    <h3>No maintenance requests yet</h3>
+                    <p>Submit your first request using the form above.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

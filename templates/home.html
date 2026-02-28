@@ -1,0 +1,337 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Casa de Liberty - Premium Living Spaces</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20100%20100%22%3E%3Ctext%20y=%22.9em%22%20font-size=%2290%22%3E%F0%9F%8F%A8%3C/text%3E%3C/svg%3E">
+    <!-- Global Theme Manager - Load early to prevent theme flashing -->
+    <script src="{% static 'js/theme.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+    <style>
+        /* Mobile Navigation Styles */
+        @media (max-width: 767px) {
+            .mobile-nav-toggle {
+                display: flex !important;
+            }
+
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 65px;
+                right: 0;
+                left: 0;
+                background: rgba(15, 20, 25, 0.95);
+                flex-direction: column;
+                gap: 0;
+                padding: 10px 0;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .nav-link {
+                padding: 12px 16px;
+                border-radius: 0;
+            }
+
+            .theme-toggle-container {
+                padding: 10px 16px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+        }
+
+        @media (min-width: 768px) {
+            .mobile-nav-toggle {
+                display: none !important;
+            }
+        }
+
+        .mobile-nav-toggle {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-nav-toggle:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <div class="brand-icon">🏨</div>
+            <div class="brand-text">
+                <h2>Casa de Liberty</h2>
+                <p>Premium Living Spaces</p>
+            </div>
+        </div>
+        <div class="nav-links" id="navLinks">
+            <div class="theme-toggle-container">
+                <label class="theme-toggle-label">
+                    <input type="checkbox" id="darkModeToggle" class="theme-toggle-checkbox">
+                    <span class="theme-toggle-slider"></span>
+                    <span class="theme-toggle-text" id="theme-text">Dark</span>
+                </label>
+            </div>
+            <a href="{% url 'apartments' %}" class="nav-link">View Apartments</a>
+            <a href="{% url 'login' %}" class="nav-link btn-nav-login">Log In</a>
+        </div>
+        <button class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Toggle mobile menu">
+            ☰
+        </button>
+    </nav>
+
+    <div class="hero-section">
+        <!-- Dark Overlay -->
+        <div class="hero-overlay"></div>
+        
+        <!-- Hero Content -->
+        <div class="hero-wrapper">
+            <!-- Main Headline -->
+            <div class="hero-headline">
+                <h1>Welcome to <span class="highlight">Casa de Liberty</span></h1>
+                <p>Experience premium living with our carefully curated selection of rooms.<br>Your perfect home awaits with modern amenities and exceptional service.</p>
+            </div>
+
+            <!-- Main CTA Buttons -->
+            <div class="main-cta-buttons">
+                <a href="{% url 'apartments' %}" class="btn-primary-luxury">
+                    View Available Apartments
+                    <span class="btn-arrow">→</span>
+                </a>
+            </div>
+
+            <!-- Alternative Actions -->
+            <div class="alternative-actions">
+                <p>New to Casa de Liberty? <a href="{% url 'register' %}" class="link-register">Create an account</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Why Choose Section -->
+    <section class="why-choose-section">
+        <div class="why-choose-container">
+            <div class="section-header">
+                <h2>Why Choose Casa de Liberty?</h2>
+                <p>Experience the perfect blend of comfort, convenience, and community</p>
+            </div>
+
+            <div class="features-grid">
+                <!-- Feature 1: Premium Rooms -->
+                <div class="feature-card">
+                    <div class="feature-icon">🏢</div>
+                    <h3>Premium Rooms</h3>
+                    <p>Fully furnished rooms with modern amenities, designed for your comfort and convenience. Each room is carefully maintained to the highest standards.</p>
+                </div>
+
+                <!-- Feature 2: Secure Process -->
+                <div class="feature-card">
+                    <div class="feature-icon">🛡️</div>
+                    <h3>Secure Process</h3>
+                    <p>Our admin-approved booking system ensures safety and reliability. Every booking is carefully reviewed for your peace of mind.</p>
+                </div>
+
+                <!-- Feature 3: Easy Booking -->
+                <div class="feature-card">
+                    <div class="feature-icon">🚀</div>
+                    <h3>Easy Booking</h3>
+                    <p>Simple and intuitive booking process. Browse rooms, register your account, and submit your booking request in minutes.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How to Get Started Section -->
+    <section class="how-to-section">
+        <div class="how-to-container">
+            <div class="section-header">
+                <h2>How to Get Started</h2>
+                <p>Follow these simple steps to book your perfect room at Casa de Liberty</p>
+            </div>
+
+            <div class="steps-container">
+                <!-- Step 1: Create Account -->
+                <a href="{% url 'register' %}" class="step-card">
+                    <div class="step-icon">👤</div>
+                    <h3>Create Your Account</h3>
+                    <p>Sign up in minutes with your email and phone number. Secure registration process to get you started.</p>
+                </a>
+
+                <!-- Step 2: Browse Apartments -->
+                <a href="{% url 'apartments' %}" class="step-card">
+                    <div class="step-icon">🔍</div>
+                    <h3>Browse Available Rooms</h3>
+                    <p>Explore our premium rooms and apartments. View photos, amenities, pricing, and availability details.</p>
+                </a>
+
+                <!-- Step 3: Book Your Room -->
+                <a href="{% url 'apartments' %}" class="step-card">
+                    <div class="step-icon">📅</div>
+                    <h3>Book Your Room</h3>
+                    <p>Select your preferred room and submit your booking request. Choose your check-in date and lease duration.</p>
+                </a>
+
+                <!-- Step 4: Get Approved -->
+                <a href="{% url 'apartments' %}" class="step-card">
+                    <div class="step-icon">✅</div>
+                    <h3>Get Approved</h3>
+                    <p>Our admin team reviews your request and confirms your booking. You'll receive instant email notifications.</p>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact-section">
+        <div class="contact-container">
+            <div class="section-header">
+                <h2>Get In Touch</h2>
+                <p>Have questions? We're here to help! Contact us anytime.</p>
+            </div>
+
+            <div class="contact-cards-container">
+                <!-- Email Card -->
+                <a href="mailto:casadeliberty@gmail.com" class="contact-card">
+                    <div class="contact-card-icon">✉️</div>
+                    <h3>Send Email</h3>
+                    <p>Get in touch via email. We'll respond within 24 hours with answers to your questions.</p>
+                </a>
+
+                <!-- Phone Card -->
+                <a href="tel:+1234567890" class="contact-card">
+                    <div class="contact-card-icon">📞</div>
+                    <h3>Call Us</h3>
+                    <p>Speak directly with our team. Available Monday to Sunday for all your inquiries.</p>
+                </a>
+
+                <!-- Location Card -->
+                <div class="contact-card">
+                    <div class="contact-card-icon">📍</div>
+                    <h3>Visit Us</h3>
+                    <p>123 Liberty Avenue, Premium City, PC 12345. Our office is open during business hours.</p>
+                </div>
+
+                <!-- Hours Card -->
+                <div class="contact-card">
+                    <div class="contact-card-icon">🕐</div>
+                    <h3>Business Hours</h3>
+                    <p>Mon-Fri: 9:00 AM - 6:00 PM | Sat-Sun: 10:00 AM - 4:00 PM EST</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2026 Casa de Liberty. All rights reserved.</p>
+            <div class="footer-links">
+                <a href="{% url 'home' %}">Home</a>
+                <a href="{% url 'apartments' %}">Apartments</a>
+                <a href="{% url 'login' %}">Login</a>
+                <a href="mailto:casadeliberty@gmail.com">Contact</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Theme toggle is now handled by the global ThemeManager in theme.js
+        // The theme state is synchronized across all pages via localStorage
+
+        // Mobile Navigation Toggle
+        const mobileNavToggle = document.getElementById('mobileNavToggle');
+        const navLinks = document.getElementById('navLinks');
+        const navLinkItems = navLinks.querySelectorAll('.nav-link');
+
+        if (mobileNavToggle) {
+            mobileNavToggle.addEventListener('click', function() {
+                navLinks.classList.toggle('active');
+            });
+
+            // Close menu when a link is clicked (mobile only)
+            navLinkItems.forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth <= 767) {
+                        navLinks.classList.remove('active');
+                    }
+                });
+            });
+
+            // Close menu when window is resized to desktop
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 767) {
+                    navLinks.classList.remove('active');
+                }
+            });
+        }
+
+        // Page Transition Animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Apply fade-in animation to main sections
+            const heroSection = document.querySelector('.hero-section');
+            const whyChooseSection = document.querySelector('.why-choose-section');
+            const footerSection = document.querySelector('.footer');
+            
+            if (heroSection) heroSection.style.animation = 'pageTransitionIn 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+            if (whyChooseSection) whyChooseSection.style.animation = 'pageTransitionIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.2s backwards';
+            if (footerSection) footerSection.style.animation = 'pageTransitionIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.4s backwards';
+            
+            // Add staggered animations to feature cards
+            const featureCards = document.querySelectorAll('.feature-card');
+            featureCards.forEach((card, index) => {
+                card.style.animation = `pageTransitionIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) ${300 + index * 100}ms backwards`;
+            });
+        });
+
+        // Add smooth transitions when navigating to apartment pages
+        const apartmentLinks = document.querySelectorAll('a[href*="/apartments"]');
+        apartmentLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                const mainElement = document.querySelector('main') || document.querySelector('.hero-section') || document.body;
+                if (mainElement && !this.target) {
+                    e.preventDefault();
+                    mainElement.style.animation = 'pageTransitionOut 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+                    setTimeout(() => {
+                        window.location.href = this.href;
+                    }, 400);
+                }
+            });
+        });
+    </script>
+    <style>
+        @keyframes pageTransitionIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pageTransitionOut {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+        }
+    </style>
+</body>
+</html>

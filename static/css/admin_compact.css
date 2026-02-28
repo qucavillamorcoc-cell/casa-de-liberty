@@ -1,0 +1,233 @@
+:root {
+    /* keep sidebar same width as main stylesheet so admin portal matches
+       the reference image exactly; the 200px compact layout caused the
+       text to wrap vertically and made the menu feel cramped. */
+    --sidebar-width: 240px;
+}
+
+/* Previously made sidebar narrower; now we keep it the same width
+   as the default layout so admin dashboard uses the same proportions as
+   the mock‑up.  Most of these rules are no longer needed and are kept for
+   reference in case we want a future 'compact' mode. */
+/*
+.sidebar {
+    width: var(--sidebar-width) !important;
+    padding: 14px !important;
+    box-sizing: border-box;
+}
+*/
+
+.sidebar-logo {
+    padding: 12px 10px !important;
+    gap: 10px;
+}
+
+.sidebar-logo-icon {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    border-radius: 8px;
+}
+
+.sidebar-logo-text h2 {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.05;
+    font-weight: 800;
+}
+
+.sidebar-menu {
+    padding: 8px 6px;
+}
+
+.sidebar-menu li {
+    margin: 6px 0;
+}
+
+.sidebar-link {
+    padding: 10px 12px !important;
+    border-radius: 8px !important;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+}
+
+/* Compact footer / user block */
+.sidebar-footer {
+    padding: 8px 6px 20px 6px;
+}
+
+.sidebar-user {
+    padding: 8px !important;
+    gap: 10px;
+}
+
+.sidebar-user-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
+
+/* Expand main content to use remaining space */
+.main-content {
+    margin-left: var(--sidebar-width);
+    padding: 20px 28px;
+    box-sizing: border-box;
+}
+
+/* Reduce top-nav height and spacing on desktop */
+.top-nav {
+    height: 56px;
+}
+
+/* Reduce gaps inside cards/sections by default */
+.card, .stat-card, .admin-table, .table-wrapper {
+    margin: 0 0 14px 0;
+}
+
+/* Make tables and grids more compact */
+.admin-table td, .admin-table th {
+    padding: 10px 6px;
+}
+
+/* Mobile: remove left margin so content fits */
+@media (max-width: 767px) {
+    .main-content {
+        margin-left: 0 !important;
+        padding: 12px !important;
+    }
+
+    .sidebar {
+        position: fixed;
+        transform: translateX(-100%);
+    }
+}
+
+/* Site-wide compact card/grid styles to match tenant layout */
+.stat-card, .card {
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+    background: linear-gradient(180deg, rgba(10,15,22,0.9), rgba(2,6,23,0.95));
+    box-shadow: 0 10px 30px rgba(2,6,23,0.6);
+    border: 1px solid rgba(255,255,255,0.04);
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header area for prominent cards (uses background gradient similar to apartments) */
+.card .card-top, .stat-card .card-top, .card-top-hero {
+    height: 140px;
+    background: linear-gradient(135deg, #7c3aed 0%, #60a5fa 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Body/content area inside cards */
+.card .card-body, .stat-card .card-body, .card-body-hero {
+    padding: 18px 20px;
+    background: linear-gradient(180deg, rgba(0,0,0,0.45), rgba(0,0,0,0.6));
+    color: #e6eef8;
+    flex: 1;
+}
+
+/* Make stats grid match three-column card layout on wide screens */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    margin-bottom: 28px;
+    align-items: start;
+}
+
+/* Apartment / cards list layout: show three columns where possible */
+.apartments-grid, .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+
+/* Reduce sidebar visual weight and keep labels compact */
+.sidebar {
+    width: var(--sidebar-width) !important;
+    background: linear-gradient(180deg, #0b1220, #0f1724);
+    border-right: 1px solid rgba(255,255,255,0.03);
+    padding-top: 20px;
+}
+
+.sidebar-logo-text h2 {
+    font-size: 14px;
+}
+
+/* Make main content use most of the width with comfortable padding */
+.main-content {
+    padding: 12px 22px;
+}
+
+/* Stat card internal layout tweaks */
+.stat-card {
+    padding: 18px 20px;
+}
+
+.stat-card .stat-header {
+    display: block;
+    margin-bottom: 18px;
+}
+
+.stat-card .stat-value {
+    font-size: 28px;
+    color: #ffffff;
+    margin-bottom: 6px;
+}
+
+/* position small icon in top-right */
+.stat-card .stat-icon {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.03);
+    font-size: 20px;
+}
+
+/* thin outline around cards to match reference */
+.stat-card, .card {
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.04);
+}
+
+/* Responsive: fall back to two columns then one column */
+@media (max-width: 1400px) {
+    .stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .apartments-grid, .cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 1100px) {
+    .stats-grid, .apartments-grid, .cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 900px) {
+    .stats-grid, .apartments-grid, .cards-grid {
+        grid-template-columns: 1fr;
+    }
+}

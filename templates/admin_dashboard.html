@@ -1,0 +1,429 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}Admin Dashboard - Casa de Liberty{% endblock %}
+
+{% block content %}
+<style>
+    .opsdash {
+        --bg: rgba(12, 20, 38, 0.9);
+        --bg2: rgba(16, 27, 48, 0.94);
+        --border: rgba(148, 163, 184, 0.14);
+        --text: #edf3ff;
+        --muted: #a6b4cb;
+        --muted2: #7f92ad;
+        --accent: #0ea5e9;
+        --accent2: #2563eb;
+        --ok: #10b981;
+        --warn: #f59e0b;
+        --bad: #ef4444;
+        --shadow: 0 20px 46px rgba(2, 8, 23, 0.24);
+        max-width: 1320px;
+        margin: 0 auto;
+        color: var(--text);
+        font-family: Inter, "Segoe UI", sans-serif;
+        display: grid;
+        gap: 16px;
+    }
+    html:not(.dark-mode) .opsdash {
+        --bg: rgba(255, 255, 255, 0.92);
+        --bg2: rgba(248, 251, 255, 0.95);
+        --border: rgba(15, 23, 42, 0.08);
+        --text: #0f172a;
+        --muted: #475569;
+        --muted2: #64748b;
+        --shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+    }
+    .opsdash * { box-sizing: border-box; }
+    .opsdash-head {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 14px;
+        align-items: start;
+        padding: 8px 2px 2px;
+    }
+    .opsdash-eyebrow {
+        margin: 0 0 8px;
+        color: var(--muted2);
+        font-size: 12px;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+        font-weight: 800;
+    }
+    .opsdash-title {
+        margin: 0;
+        font-size: clamp(26px, 2vw, 34px);
+        line-height: 1.05;
+        letter-spacing: -.02em;
+        font-weight: 800;
+    }
+    .opsdash-subtitle {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 14px;
+        max-width: 72ch;
+    }
+    .opsdash-user {
+        min-width: 220px;
+        border-radius: 14px;
+        border: 1px solid var(--border);
+        background: linear-gradient(180deg, var(--bg) 0%, rgba(148,163,184,0.02) 100%);
+        box-shadow: var(--shadow);
+        padding: 10px 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+    .opsdash-user-name { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .opsdash-user-role { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .opsdash-avatar {
+        width: 38px; height: 38px; border-radius: 12px;
+        display: grid; place-items: center; color: #fff; font-weight: 800;
+        background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+        box-shadow: 0 10px 22px rgba(14, 165, 233, 0.24);
+        flex-shrink: 0;
+    }
+    .opsdash-hero {
+        border-radius: 20px;
+        border: 1px solid var(--border);
+        background:
+            radial-gradient(circle at 14% 16%, rgba(14,165,233,0.14) 0, rgba(14,165,233,0) 42%),
+            radial-gradient(circle at 86% 12%, rgba(37,99,235,0.1) 0, rgba(37,99,235,0) 40%),
+            linear-gradient(135deg, var(--bg2) 0%, var(--bg) 100%);
+        box-shadow: var(--shadow);
+        padding: 18px;
+        display: grid;
+        grid-template-columns: 1.5fr minmax(280px, 1fr);
+        gap: 16px;
+        align-items: center;
+    }
+    .opsdash-hero h2 { margin: 0; font-size: clamp(20px, 1.7vw, 28px); font-weight: 800; letter-spacing: -.02em; }
+    .opsdash-hero p { margin: 10px 0 0; color: var(--muted); font-size: 14px; }
+    .opsdash-pills { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 10px; }
+    .opsdash-pill {
+        border: 1px solid var(--border);
+        background: rgba(148, 163, 184, 0.04);
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        color: var(--text);
+        font-weight: 600;
+        display: inline-flex; align-items: center; gap: 8px;
+    }
+    .opsdash-pill-dot { width: 7px; height: 7px; border-radius: 999px; background: var(--accent); box-shadow: 0 0 0 4px rgba(14,165,233,.14); }
+    .opsdash-actions { display: grid; gap: 10px; }
+    .opsdash-actions-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .opsdash-btn {
+        min-height: 42px; border-radius: 12px; border: 1px solid var(--border);
+        display: inline-flex; align-items: center; justify-content: center;
+        text-decoration: none; color: var(--text); font-size: 13px; font-weight: 700;
+        background: rgba(148, 163, 184, 0.04);
+        transition: transform .16s ease, border-color .16s ease, background-color .16s ease;
+    }
+    .opsdash-btn:hover { transform: translateY(-1px); border-color: rgba(14,165,233,.24); background: rgba(14,165,233,.05); }
+    .opsdash-btn--primary { color:#fff; border-color: rgba(14,165,233,.24); background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%); box-shadow: 0 14px 24px rgba(14,165,233,.22); }
+    .opsdash-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; }
+    .opsdash-card {
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        background: linear-gradient(180deg, var(--bg) 0%, rgba(148,163,184,0.02) 100%);
+        box-shadow: var(--shadow);
+        padding: 16px;
+    }
+    .opsdash-metric { text-decoration: none; color: inherit; display: grid; gap: 10px; transition: transform .16s ease, border-color .16s ease; }
+    .opsdash-metric:hover { transform: translateY(-2px); border-color: rgba(14,165,233,.22); }
+    .opsdash-metric-top { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+    .opsdash-metric-label { color: var(--muted); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
+    .opsdash-metric-icon { width: 34px; height: 34px; border-radius: 10px; display:grid; place-items:center; font-size: 12px; font-weight: 800; background: rgba(14,165,233,.12); border:1px solid rgba(14,165,233,.14); }
+    .opsdash-metric-icon.ok { background: rgba(16,185,129,.14); border-color: rgba(16,185,129,.14); }
+    .opsdash-metric-icon.warn { background: rgba(245,158,11,.14); border-color: rgba(245,158,11,.14); }
+    .opsdash-metric-icon.violet { background: rgba(139,92,246,.14); border-color: rgba(139,92,246,.14); }
+    .opsdash-metric-value { margin:0; font-size: clamp(22px, 1.7vw, 30px); font-weight: 800; line-height: 1; letter-spacing: -.02em; }
+    .opsdash-metric-sub { color: var(--muted2); font-size: 12px; }
+    .opsdash-layout { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(300px, 1fr); gap: 14px; align-items: start; }
+    .opsdash-layout--compact {
+        grid-template-columns: 1fr;
+    }
+    .opsdash-layout--compact .opsdash-stack {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+        align-items: start;
+    }
+    .opsdash-layout--compact .opsdash-stack > .opsdash-card:first-child {
+        grid-column: 1 / -1;
+    }
+    .opsdash-layout--compact .opsdash-linkpanel {
+        order: 2;
+    }
+    .opsdash-layout--compact .opsdash-stack {
+        order: 1;
+    }
+    .opsdash-panel-head { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; margin-bottom: 14px; }
+    .opsdash-panel-title { margin:0; font-size: 18px; font-weight: 800; letter-spacing: -.02em; }
+    .opsdash-panel-desc { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+    .opsdash-badge { border:1px solid var(--border); border-radius:999px; padding:6px 10px; color: var(--muted); font-size:11px; font-weight:700; text-transform: uppercase; letter-spacing:.08em; }
+    .opsdash-linkpanel { display:block; text-decoration:none; color:inherit; transition: transform .16s ease, border-color .16s ease; }
+    .opsdash-linkpanel:hover { transform: translateY(-2px); border-color: rgba(14,165,233,.22); }
+    .opsdash-table-wrap { overflow:auto; border:1px solid var(--border); border-radius:12px; background: rgba(148,163,184,.03); }
+    .opsdash-table { width: 100%; min-width: 660px; border-collapse: collapse; }
+    .opsdash-table th { text-align:left; padding:12px 14px; border-bottom:1px solid var(--border); font-size:11px; color: var(--muted2); text-transform: uppercase; letter-spacing:.09em; }
+    .opsdash-table td { padding:14px; border-bottom:1px solid rgba(148,163,184,.08); font-size: 13px; vertical-align: top; }
+    .opsdash-table tbody tr:last-child td { border-bottom: none; }
+    .opsdash-table tbody tr:hover { background: rgba(14,165,233,.05); }
+    .opsdash-primary { font-weight: 700; }
+    .opsdash-secondary { margin-top:2px; color: var(--muted); font-size: 12px; }
+    .opsdash-status { display:inline-flex; align-items:center; gap:6px; padding:5px 10px; border-radius:999px; font-size:11px; font-weight:700; text-transform: uppercase; letter-spacing:.04em; border:1px solid transparent; }
+    .opsdash-status:before { content:""; width:6px; height:6px; border-radius:999px; background: currentColor; }
+    .opsdash-status.active { color:#34d399; background: rgba(16,185,129,.12); border-color: rgba(16,185,129,.18); }
+    .opsdash-status.pending { color:#fbbf24; background: rgba(245,158,11,.12); border-color: rgba(245,158,11,.18); }
+    .opsdash-status.cancelled { color:#f87171; background: rgba(239,68,68,.12); border-color: rgba(239,68,68,.18); }
+    .opsdash-status.completed { color:#93c5fd; background: rgba(59,130,246,.12); border-color: rgba(59,130,246,.18); }
+    .opsdash-status.default { color:#cbd5e1; background: rgba(148,163,184,.10); border-color: rgba(148,163,184,.16); }
+    .opsdash-stack { display:grid; gap:14px; }
+    .opsdash-list { display:grid; gap:10px; }
+    .opsdash-item {
+        display:grid; grid-template-columns: 38px 1fr auto; gap:10px; align-items:center;
+        border:1px solid var(--border); border-radius:14px; background: rgba(148,163,184,.03);
+        padding:10px 12px; text-decoration:none; color:inherit;
+        transition: transform .16s ease, border-color .16s ease, background-color .16s ease;
+    }
+    .opsdash-item:hover { transform: translateY(-1px); border-color: rgba(14,165,233,.22); background: rgba(14,165,233,.05); }
+    .opsdash-item-icon { width:38px; height:38px; border-radius:10px; display:grid; place-items:center; font-size:12px; font-weight:800; background: rgba(14,165,233,.12); border:1px solid rgba(14,165,233,.14); }
+    .opsdash-item-label { font-size:14px; font-weight:700; line-height:1.1; }
+    .opsdash-item-hint { margin-top:2px; font-size:12px; color: var(--muted); }
+    .opsdash-item-arrow { color: var(--muted2); font-size: 13px; font-weight: 700; }
+    .opsdash-kv { display:grid; gap:10px; }
+    .opsdash-kv-row { display:grid; grid-template-columns: 1fr auto; gap:12px; align-items:center; padding:10px 0; border-bottom:1px solid rgba(148,163,184,.08); }
+    .opsdash-kv-row:last-child { border-bottom:none; padding-bottom:0; }
+    .opsdash-kv-label { color: var(--muted); font-size:13px; }
+    .opsdash-kv-value { color: var(--text); font-size:13px; font-weight:700; text-align:right; }
+    .opsdash-kv-value.accent { color:#7dd3fc; }
+    .opsdash-kv-value.ok { color:#34d399; }
+    .opsdash-kv-value.warn { color:#fbbf24; }
+    .opsdash-top { display:grid; gap:10px; }
+    .opsdash-top-row { display:grid; grid-template-columns: 24px 1fr auto; gap:10px; align-items:center; border:1px solid var(--border); border-radius:12px; background: rgba(148,163,184,.03); padding:10px 12px; }
+    .opsdash-rank { width:24px; height:24px; border-radius:999px; display:grid; place-items:center; font-size:11px; font-weight:800; background: rgba(14,165,233,.14); }
+    .opsdash-empty { border:1px dashed var(--border); border-radius:14px; background: rgba(148,163,184,.03); padding:22px; text-align:center; }
+    .opsdash-empty h4 { margin:0; font-size:16px; font-weight:800; }
+    .opsdash-empty p { margin:8px auto 0; font-size:13px; color: var(--muted); max-width:36ch; }
+    @media (max-width: 1080px) {
+        .opsdash-hero,
+        .opsdash-layout,
+        .opsdash-layout--compact .opsdash-stack {
+            grid-template-columns: 1fr;
+        }
+    }
+    @media (max-width: 920px) { .opsdash-head { grid-template-columns: 1fr; } .opsdash-user { width: 100%; min-width: 0; } }
+    @media (max-width: 760px) { .opsdash-actions-row { grid-template-columns: 1fr; } }
+</style>
+
+<section class="opsdash">
+    <header class="opsdash-head">
+        <div>
+            <p class="opsdash-eyebrow">Admin Portal</p>
+            <h1 class="opsdash-title">Operations Dashboard</h1>
+            <p class="opsdash-subtitle">Monitor leases, payments, occupancy, and property performance from one place.</p>
+        </div>
+        <div class="opsdash-user">
+            <div>
+                <div class="opsdash-user-name">{{ request.user.get_full_name|default:request.user.username }}</div>
+                <div class="opsdash-user-role">Admin</div>
+            </div>
+            <div class="opsdash-avatar">{{ request.user.username|slice:":1"|upper }}</div>
+        </div>
+    </header>
+
+    <section class="opsdash-hero">
+        <div>
+            <h2>Property operations at a glance.</h2>
+            <p>Review current leasing activity, payment collections, and occupancy trends across Casa de Liberty.</p>
+            <div class="opsdash-pills">
+                <span class="opsdash-pill"><span class="opsdash-pill-dot"></span>{{ pending_leases }} pending lease{{ pending_leases|pluralize }}</span>
+                <span class="opsdash-pill"><span class="opsdash-pill-dot"></span>Period: {{ filter_start_date }} to {{ filter_end_date }}</span>
+            </div>
+        </div>
+        <div class="opsdash-actions">
+            <div class="opsdash-actions-row">
+                <a href="{% url 'manage_leases' %}" class="opsdash-btn opsdash-btn--primary">Manage Leases</a>
+                <a href="{% url 'manage_apartments' %}" class="opsdash-btn">Manage Apartments</a>
+            </div>
+            <div class="opsdash-actions-row">
+                <a href="{% url 'export_sales_csv' %}" class="opsdash-btn">Export CSV</a>
+                <a href="{% url 'export_sales_pdf' %}" class="opsdash-btn">Export PDF</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="opsdash-metrics">
+        <a href="{% url 'manage_leases' %}" class="opsdash-card opsdash-metric">
+            <div class="opsdash-metric-top"><div class="opsdash-metric-label">Total Leases</div><div class="opsdash-metric-icon">LS</div></div>
+            <h2 class="opsdash-metric-value">{{ total_leases }}</h2>
+            <div class="opsdash-metric-sub">All lease records</div>
+        </a>
+        <a href="{% url 'manage_leases' %}?status=pending" class="opsdash-card opsdash-metric">
+            <div class="opsdash-metric-top"><div class="opsdash-metric-label">Pending</div><div class="opsdash-metric-icon warn">PD</div></div>
+            <h2 class="opsdash-metric-value">{{ pending_leases }}</h2>
+            <div class="opsdash-metric-sub">Awaiting approval</div>
+        </a>
+        <a href="{% url 'manage_leases' %}?status=active" class="opsdash-card opsdash-metric">
+            <div class="opsdash-metric-top"><div class="opsdash-metric-label">Active Leases</div><div class="opsdash-metric-icon ok">AC</div></div>
+            <h2 class="opsdash-metric-value">{{ confirmed_leases }}</h2>
+            <div class="opsdash-metric-sub">Currently active agreements</div>
+        </a>
+        <a href="{% url 'payments' %}" class="opsdash-card opsdash-metric">
+            <div class="opsdash-metric-top"><div class="opsdash-metric-label">Lease Revenue</div><div class="opsdash-metric-icon violet">RV</div></div>
+            <h2 class="opsdash-metric-value">P{{ total_revenue|floatformat:0 }}</h2>
+            <div class="opsdash-metric-sub">Total lease value</div>
+        </a>
+        <a href="{% url 'payments' %}" class="opsdash-card opsdash-metric">
+            <div class="opsdash-metric-top"><div class="opsdash-metric-label">Payments Collected</div><div class="opsdash-metric-icon">PM</div></div>
+            <h2 class="opsdash-metric-value">P{{ total_payments|floatformat:0 }}</h2>
+            <div class="opsdash-metric-sub">Approved rent payments</div>
+        </a>
+        <a href="{% url 'manage_apartments' %}" class="opsdash-card opsdash-metric">
+            <div class="opsdash-metric-top"><div class="opsdash-metric-label">Apartments</div><div class="opsdash-metric-icon">AP</div></div>
+            <h2 class="opsdash-metric-value">{{ apartments.count }}</h2>
+            <div class="opsdash-metric-sub">Units in inventory</div>
+        </a>
+        <div class="opsdash-card">
+            <div class="opsdash-metric-top"><div class="opsdash-metric-label">Occupancy (30d)</div><div class="opsdash-metric-icon ok">OC</div></div>
+            <h2 class="opsdash-metric-value">{{ occupancy_rate|floatformat:1 }}%</h2>
+            <div class="opsdash-metric-sub">Estimated occupied room nights</div>
+        </div>
+        <div class="opsdash-card">
+            <div class="opsdash-metric-top"><div class="opsdash-metric-label">Avg Lease Value</div><div class="opsdash-metric-icon warn">AV</div></div>
+            <h2 class="opsdash-metric-value">P{{ avg_lease_value|floatformat:0 }}</h2>
+            <div class="opsdash-metric-sub">Average active lease value</div>
+        </div>
+    </section>
+
+    <section class="opsdash-layout {% if recent_leases|length <= 3 %}opsdash-layout--compact{% endif %}">
+        <a href="{% url 'manage_leases' %}" class="opsdash-card opsdash-linkpanel">
+            <div class="opsdash-panel-head">
+                <div>
+                    <h3 class="opsdash-panel-title">Recent Lease Activity</h3>
+                    <p class="opsdash-panel-desc">Latest tenant lease requests and status changes.</p>
+                </div>
+                <div class="opsdash-badge">Live</div>
+            </div>
+
+            {% if recent_leases %}
+                <div class="opsdash-table-wrap">
+                    <table class="opsdash-table">
+                        <thead>
+                            <tr>
+                                <th>Tenant</th>
+                                <th>Apartment</th>
+                                <th>Move-In</th>
+                                <th>Status</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for lease in recent_leases|slice:":8" %}
+                                <tr>
+                                    <td>
+                                        <div class="opsdash-primary">{{ lease.tenant.username }}</div>
+                                        <div class="opsdash-secondary">{{ lease.tenant.email|default:"No email" }}</div>
+                                    </td>
+                                    <td>
+                                        <div class="opsdash-primary">Unit {{ lease.apartment.unit_number }}</div>
+                                        <div class="opsdash-secondary">{{ lease.apartment.get_apartment_type_display }}</div>
+                                    </td>
+                                    <td>{{ lease.move_in_date|date:"M d, Y" }}</td>
+                                    <td>
+                                        <span class="opsdash-status {% if lease.status == 'active' %}active{% elif lease.status == 'pending' %}pending{% elif lease.status == 'cancelled' %}cancelled{% elif lease.status == 'completed' %}completed{% else %}default{% endif %}">
+                                            {{ lease.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td class="opsdash-primary">P{{ lease.total_lease_price|floatformat:0 }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="opsdash-empty">
+                    <h4>No lease records yet</h4>
+                    <p>New tenant lease requests will appear here as they are submitted.</p>
+                </div>
+            {% endif %}
+        </a>
+
+        <div class="opsdash-stack">
+            <div class="opsdash-card">
+                <div class="opsdash-panel-head">
+                    <div>
+                        <h3 class="opsdash-panel-title">Operations Shortcuts</h3>
+                        <p class="opsdash-panel-desc">Fast access to daily admin tasks.</p>
+                    </div>
+                </div>
+                <div class="opsdash-list">
+                    <a href="{% url 'manage_tenants' %}" class="opsdash-item">
+                        <div class="opsdash-item-icon">TN</div>
+                        <div><div class="opsdash-item-label">Tenant Records</div><div class="opsdash-item-hint">Review tenants and account status</div></div>
+                        <div class="opsdash-item-arrow">GO</div>
+                    </a>
+                    <a href="{% url 'staff_maintenance' %}" class="opsdash-item">
+                        <div class="opsdash-item-icon">MT</div>
+                        <div><div class="opsdash-item-label">Maintenance Queue</div><div class="opsdash-item-hint">Track and update requests</div></div>
+                        <div class="opsdash-item-arrow">GO</div>
+                    </a>
+                    <a href="{% url 'admin_calendar' %}" class="opsdash-item">
+                        <div class="opsdash-item-icon">CL</div>
+                        <div><div class="opsdash-item-label">Admin Calendar</div><div class="opsdash-item-hint">Events, approvals, and scheduling</div></div>
+                        <div class="opsdash-item-arrow">GO</div>
+                    </a>
+                    <a href="{% url 'payments' %}" class="opsdash-item">
+                        <div class="opsdash-item-icon">PY</div>
+                        <div><div class="opsdash-item-label">Payment Records</div><div class="opsdash-item-hint">Review rent payment entries</div></div>
+                        <div class="opsdash-item-arrow">GO</div>
+                    </a>
+                </div>
+            </div>
+
+            <div class="opsdash-card">
+                <div class="opsdash-panel-head">
+                    <div>
+                        <h3 class="opsdash-panel-title">Performance Snapshot</h3>
+                        <p class="opsdash-panel-desc">Operational indicators for the current filter range.</p>
+                    </div>
+                </div>
+                <div class="opsdash-kv">
+                    <div class="opsdash-kv-row"><div class="opsdash-kv-label">Filter period</div><div class="opsdash-kv-value">{{ filter_start_date }} to {{ filter_end_date }}</div></div>
+                    <div class="opsdash-kv-row"><div class="opsdash-kv-label">Pending leases</div><div class="opsdash-kv-value warn">{{ pending_leases }}</div></div>
+                    <div class="opsdash-kv-row"><div class="opsdash-kv-label">Active leases</div><div class="opsdash-kv-value ok">{{ confirmed_leases }}</div></div>
+                    <div class="opsdash-kv-row"><div class="opsdash-kv-label">Occupancy rate (30d)</div><div class="opsdash-kv-value accent">{{ occupancy_rate|floatformat:1 }}%</div></div>
+                    <div class="opsdash-kv-row"><div class="opsdash-kv-label">Average lease value</div><div class="opsdash-kv-value">P{{ avg_lease_value|floatformat:0 }}</div></div>
+                </div>
+            </div>
+
+            <div class="opsdash-card">
+                <div class="opsdash-panel-head">
+                    <div>
+                        <h3 class="opsdash-panel-title">Top Apartments by Revenue</h3>
+                        <p class="opsdash-panel-desc">Best-performing units by lease value.</p>
+                    </div>
+                </div>
+                {% if top_rooms %}
+                    <div class="opsdash-top">
+                        {% for room in top_rooms %}
+                            <div class="opsdash-top-row">
+                                <div class="opsdash-rank">{{ forloop.counter }}</div>
+                                <div class="opsdash-primary">Unit {{ room.room }}</div>
+                                <div class="opsdash-secondary">P{{ room.revenue|floatformat:0 }}</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="opsdash-empty">
+                        <h4>No revenue data yet</h4>
+                        <p>Top-performing apartments will appear after leases are created.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+</section>
+{% endblock %}

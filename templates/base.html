@@ -1,0 +1,110 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Casa de Liberty</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20100%20100%22%3E%3Ctext%20y=%22.9em%22%20font-size=%2290%22%3E%F0%9F%8F%A8%3C/text%3E%3C/svg%3E">
+    <!-- Global Theme Manager - Load early to prevent theme flashing -->
+    <script src="{% static 'js/theme.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=20260226-portal">
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+    <link rel="stylesheet" href="{% static 'css/responsive.css' %}?v=20260226-portal">
+</head>
+<body>
+
+    <div class="page-wrapper">
+
+        <header class="header">
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <h1>🏨 CASA DE LIBERTY</h1>
+            </div>
+        </header>
+
+        <main class="content">
+            <!-- Display Messages -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            {% block content %}
+            {% endblock %}
+        </main>
+
+    </div>
+
+    <script>
+        // Open external links in Chrome
+        document.addEventListener('click', function(event) {
+            const link = event.target.closest('a');
+            if (link) {
+                const href = link.getAttribute('href');
+                // Check if it's an external link (starts with http/https)
+                if (href && (href.startsWith('http://') || href.startsWith('https://'))) {
+                    event.preventDefault();
+                    // Call backend API to open in Chrome
+                    fetch('/api/open-in-chrome/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
+                        },
+                        body: JSON.stringify({ url: href })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.success) {
+                            // Fallback: open in current window if Chrome not found
+                            window.location.href = href;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        // Fallback: open in current window on error
+                        window.location.href = href;
+                    });
+                }
+            }
+        });
+
+        // Page Transition Animations
+        document.addEventListener('DOMContentLoaded', function() {
+            const mainContent = document.querySelector('main');
+            const pageWrapper = document.querySelector('.page-wrapper');
+            
+            if (mainContent) mainContent.style.animation = 'pageTransitionIn 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+            if (pageWrapper) pageWrapper.style.animation = 'pageTransitionIn 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+        });
+    </script>
+
+    <style>
+        @keyframes pageTransitionIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pageTransitionOut {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+        }
+    </style>
+    <script src="{% static 'js/responsive.js' %}"></script>
+</body>
+</html>

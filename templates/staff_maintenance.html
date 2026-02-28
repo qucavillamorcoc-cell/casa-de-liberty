@@ -1,0 +1,532 @@
+{% extends "base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Manage Maintenance - Casa de Liberty{% endblock %}
+
+{% block content %}
+<style>
+    .admin-maint .am-layout {
+        display: grid;
+        gap: 20px;
+    }
+
+    .admin-maint .am-toolbar {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .admin-maint .am-toolbar > div:first-child {
+        display: grid;
+        gap: 6px;
+    }
+
+    .admin-maint .am-filter-control {
+        display: grid;
+        gap: 8px;
+        min-width: 240px;
+        padding: 2px 0;
+    }
+
+    .admin-maint .am-filter-label {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        line-height: 1.2;
+    }
+
+    .admin-maint .am-toolbar select {
+        min-width: 220px;
+    }
+
+    .admin-maint .am-stats {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 14px;
+        margin-top: 2px;
+        margin-bottom: 2px;
+    }
+
+    .admin-maint .am-stat {
+        padding: 16px 14px;
+        border-radius: 14px;
+        border: 1px solid rgba(148, 163, 184, 0.08);
+        background: rgba(148, 163, 184, 0.03);
+    }
+
+    .admin-maint .am-stat-label {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .admin-maint .am-stat-value {
+        margin: 8px 0 0;
+        color: var(--text-primary);
+        font-size: 22px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+    }
+
+    .admin-maint .am-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+        gap: 14px;
+    }
+
+    .admin-maint .am-card {
+        border-radius: 14px;
+        border: 1px solid rgba(148, 163, 184, 0.08);
+        background: rgba(148, 163, 184, 0.03);
+        overflow: hidden;
+        display: grid;
+        gap: 0;
+    }
+
+    .admin-maint .am-card-head {
+        padding: 14px;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .admin-maint .am-card-id {
+        margin: 0;
+        color: var(--text-primary);
+        font-size: 15px;
+        font-weight: 800;
+    }
+
+    .admin-maint .am-card-sub {
+        margin: 5px 0 0;
+        color: var(--text-secondary);
+        font-size: 12px;
+        line-height: 1.35;
+    }
+
+    .admin-maint .am-card-body {
+        padding: 14px;
+        display: grid;
+        gap: 12px;
+    }
+
+    .admin-maint .am-meta {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .admin-maint .am-meta-item {
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.06);
+        background: rgba(148, 163, 184, 0.03);
+    }
+
+    .admin-maint .am-meta-label {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .admin-maint .am-meta-value {
+        margin: 6px 0 0;
+        color: var(--text-primary);
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.35;
+        word-break: break-word;
+    }
+
+    .admin-maint .am-description {
+        margin: 0;
+        padding: 12px;
+        border-radius: 12px;
+        border-left: 3px solid rgba(59, 130, 246, 0.65);
+        background: rgba(59, 130, 246, 0.06);
+        color: var(--text-secondary);
+        font-size: 13px;
+        line-height: 1.55;
+    }
+
+    .admin-maint .am-description strong {
+        color: var(--text-primary);
+    }
+
+    .admin-maint .am-note-box {
+        border-left-color: rgba(16, 185, 129, 0.7);
+        background: rgba(16, 185, 129, 0.06);
+    }
+
+    .admin-maint .am-form {
+        display: grid;
+        gap: 10px;
+        padding-top: 2px;
+    }
+
+    .admin-maint .am-form .status-select,
+    .admin-maint .am-form textarea {
+        width: 100%;
+    }
+
+    .admin-maint .am-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .admin-maint .am-actions .btn {
+        border-radius: 12px;
+        font-weight: 700;
+        min-height: 42px;
+    }
+
+    .admin-maint .am-actions .btn-update {
+        background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+        box-shadow: 0 12px 20px rgba(59, 130, 246, 0.18);
+    }
+
+    .admin-maint .am-actions .btn-cancel {
+        background: rgba(220, 38, 38, 0.1);
+        color: var(--text-primary);
+        border: 1px solid rgba(220, 38, 38, 0.16);
+    }
+
+    .admin-maint .am-actions .btn-cancel:hover {
+        background: rgba(220, 38, 38, 0.16);
+    }
+
+    .admin-maint .am-toast {
+        position: fixed;
+        right: 16px;
+        top: 16px;
+        z-index: 2500;
+        min-width: 240px;
+        max-width: 340px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        color: #fff;
+        background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+        box-shadow: 0 18px 28px rgba(5, 150, 105, 0.25);
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .admin-maint .portal-panel .portal-panel-body {
+        padding: 18px 20px;
+    }
+
+    .admin-maint .portal-panel .portal-panel-header {
+        padding: 18px 20px 14px;
+    }
+
+    @media (max-width: 1200px) {
+        .admin-maint .am-stats {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 768px) {
+        .admin-maint .am-stats,
+        .admin-maint .am-meta,
+        .admin-maint .am-actions {
+            grid-template-columns: 1fr;
+        }
+
+        .admin-maint .am-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .admin-maint .am-filter-control {
+            min-width: 0;
+            width: 100%;
+        }
+
+        .admin-maint .am-toolbar select {
+            min-width: 0;
+            width: 100%;
+        }
+    }
+</style>
+
+<section class="admin-maint am-layout">
+    <div class="page-header">
+        <h1 class="page-title">Maintenance Operations</h1>
+        <div class="user-profile">
+            <div class="user-info" style="text-align: right;">
+                <p>Admin Panel</p>
+                <span>Staff</span>
+            </div>
+            <div class="user-avatar">A</div>
+        </div>
+    </div>
+    <p class="page-subtitle">Review tenant maintenance requests, update statuses, and keep a clear service trail with notes.</p>
+
+    {% if messages %}
+        <div class="portal-stack" style="gap: 10px;">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="portal-panel">
+        <div class="portal-panel-body">
+            <div class="am-toolbar">
+                <div>
+                    <h2 class="portal-panel-title" style="margin-bottom: 4px;">Request Queue</h2>
+                    <p class="portal-note">Filter by status and update requests directly from each card.</p>
+                </div>
+                <div class="am-filter-control">
+                    <label for="statusFilter" class="am-filter-label">Filter</label>
+                    <select id="statusFilter" onchange="filterByStatus()" class="input-field">
+                        <option value="">All Statuses</option>
+                        <option value="pending">Pending</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="am-stats">
+        <div class="am-stat">
+            <p class="am-stat-label">Total</p>
+            <p class="am-stat-value">{{ status_counts.total|default:0 }}</p>
+        </div>
+        <div class="am-stat">
+            <p class="am-stat-label">Pending</p>
+            <p class="am-stat-value">{{ status_counts.pending|default:0 }}</p>
+        </div>
+        <div class="am-stat">
+            <p class="am-stat-label">In Progress</p>
+            <p class="am-stat-value">{{ status_counts.in_progress|default:0 }}</p>
+        </div>
+        <div class="am-stat">
+            <p class="am-stat-label">Completed</p>
+            <p class="am-stat-value">{{ status_counts.completed|default:0 }}</p>
+        </div>
+        <div class="am-stat">
+            <p class="am-stat-label">Cancelled</p>
+            <p class="am-stat-value">{{ status_counts.cancelled|default:0 }}</p>
+        </div>
+    </div>
+
+    <div class="portal-panel">
+        <div class="portal-panel-header">
+            <div>
+                <h2 class="portal-panel-title">Maintenance Requests</h2>
+                <p class="portal-panel-subtitle">Most recent requests first</p>
+            </div>
+            <span class="portal-badge portal-badge-info">{{ maintenance_requests|length }} request{{ maintenance_requests|length|pluralize }}</span>
+        </div>
+        <div class="portal-panel-body">
+            {% if maintenance_requests %}
+                <div class="am-grid" id="maintenanceCardsContainer">
+                    {% for req in maintenance_requests %}
+                        <article class="am-card maintenance-card" data-status="{{ req.status }}" data-id="{{ req.id }}">
+                            <div class="am-card-head">
+                                <div>
+                                    <p class="am-card-id">Request #{{ req.id }}</p>
+                                    <p class="am-card-sub">
+                                        {{ req.tenant.first_name|default:req.tenant.username }} {{ req.tenant.last_name }} (@{{ req.tenant.username }})
+                                    </p>
+                                </div>
+                                <div style="display: grid; gap: 8px; justify-items: end;">
+                                    {% if req.status == 'completed' %}
+                                        <span class="portal-badge portal-badge-success">{{ req.get_status_display }}</span>
+                                    {% elif req.status == 'in_progress' %}
+                                        <span class="portal-badge portal-badge-info">{{ req.get_status_display }}</span>
+                                    {% elif req.status == 'cancelled' %}
+                                        <span class="portal-badge portal-badge-danger">{{ req.get_status_display }}</span>
+                                    {% else %}
+                                        <span class="portal-badge portal-badge-warn">{{ req.get_status_display }}</span>
+                                    {% endif %}
+
+                                    {% if req.priority == 'high' %}
+                                        <span class="portal-badge portal-badge-danger">High Priority</span>
+                                    {% elif req.priority == 'medium' %}
+                                        <span class="portal-badge portal-badge-warn">Medium Priority</span>
+                                    {% else %}
+                                        <span class="portal-badge">Low Priority</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="am-card-body">
+                                <div class="am-meta">
+                                    <div class="am-meta-item">
+                                        <p class="am-meta-label">Apartment</p>
+                                        <p class="am-meta-value">
+                                            {% if req.apartment %}Unit {{ req.apartment.unit_number }}{% else %}General / Unassigned{% endif %}
+                                        </p>
+                                    </div>
+                                    <div class="am-meta-item">
+                                        <p class="am-meta-label">Type</p>
+                                        <p class="am-meta-value">{{ req.get_maintenance_type_display }}</p>
+                                    </div>
+                                    <div class="am-meta-item">
+                                        <p class="am-meta-label">Submitted</p>
+                                        <p class="am-meta-value">{{ req.created_at|date:"M d, Y" }}</p>
+                                    </div>
+                                    <div class="am-meta-item">
+                                        <p class="am-meta-label">Completed</p>
+                                        <p class="am-meta-value">{% if req.completed_at %}{{ req.completed_at|date:"M d, Y" }}{% else %}Not completed{% endif %}</p>
+                                    </div>
+                                </div>
+
+                                <p class="am-description"><strong>Description:</strong> {{ req.description }}</p>
+
+                                {% if req.notes %}
+                                    <p class="am-description am-note-box"><strong>Current Notes:</strong> {{ req.notes }}</p>
+                                {% endif %}
+
+                                <form method="POST" action="{% url 'staff_maintenance_action' req.id %}" class="am-form">
+                                    {% csrf_token %}
+                                    <select name="status" class="status-select" required>
+                                        <option value="pending" {% if req.status == 'pending' %}selected{% endif %}>Pending</option>
+                                        <option value="in_progress" {% if req.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                                        <option value="completed" {% if req.status == 'completed' %}selected{% endif %}>Completed</option>
+                                        <option value="cancelled" {% if req.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                                    </select>
+                                    <textarea
+                                        name="notes"
+                                        class="input-field"
+                                        rows="3"
+                                        placeholder="Add or update admin notes for this request..."
+                                    >{{ req.notes|default:'' }}</textarea>
+                                    <div class="am-actions">
+                                        <button type="submit" class="btn btn-update">Save Update</button>
+                                        <button type="button" class="btn btn-cancel" onclick="clearMaintenanceRequest({{ req.id }})">Clear Request</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="portal-empty" id="maintenanceEmptyState">
+                    <h3>No maintenance requests found</h3>
+                    <p>New requests will appear here when tenants submit them.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<script>
+    function getCookie(name) {
+        const match = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+        return match ? match.pop() : '';
+    }
+
+    function showToast(message, isError) {
+        const toast = document.createElement('div');
+        toast.className = 'am-toast';
+        if (isError) {
+            toast.style.background = 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)';
+            toast.style.boxShadow = '0 18px 28px rgba(220, 38, 38, 0.22)';
+        }
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(-6px)';
+            toast.style.transition = 'all 180ms ease';
+            setTimeout(() => toast.remove(), 200);
+        }, 2500);
+    }
+
+    function filterByStatus() {
+        const selectedStatus = document.getElementById('statusFilter').value;
+        const cards = document.querySelectorAll('#maintenanceCardsContainer .maintenance-card');
+        let visibleCount = 0;
+
+        cards.forEach((card) => {
+            const cardStatus = card.getAttribute('data-status');
+            const shouldShow = !selectedStatus || cardStatus === selectedStatus;
+            card.style.display = shouldShow ? '' : 'none';
+            if (shouldShow) {
+                visibleCount += 1;
+            }
+        });
+
+        const empty = document.getElementById('maintenanceFilterEmpty');
+        if (!empty && document.getElementById('maintenanceCardsContainer')) {
+            const emptyNode = document.createElement('div');
+            emptyNode.id = 'maintenanceFilterEmpty';
+            emptyNode.className = 'portal-empty';
+            emptyNode.style.display = 'none';
+            emptyNode.innerHTML = '<h3>No requests match this filter</h3><p>Try another status to view more requests.</p>';
+            document.getElementById('maintenanceCardsContainer').after(emptyNode);
+        }
+
+        const filterEmpty = document.getElementById('maintenanceFilterEmpty');
+        if (filterEmpty) {
+            filterEmpty.style.display = visibleCount === 0 ? '' : 'none';
+        }
+    }
+
+    function clearMaintenanceRequest(maintenanceId) {
+        if (!confirm('Clear this maintenance request from the active queue? It will remain in the database.')) {
+            return;
+        }
+
+        fetch(`/api/maintenance/${maintenanceId}/clear/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: ''
+        })
+        .then((response) => response.json())
+        .then((data) => {
+            if (!data.success) {
+                throw new Error(data.message || 'Failed to clear request');
+            }
+
+            const card = document.querySelector(`.maintenance-card[data-id="${maintenanceId}"]`);
+            if (card) {
+                card.style.transition = 'opacity 180ms ease, transform 180ms ease';
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(-6px)';
+                setTimeout(() => {
+                    card.remove();
+                    filterByStatus();
+                    const remaining = document.querySelectorAll('#maintenanceCardsContainer .maintenance-card').length;
+                    if (remaining === 0) {
+                        const container = document.getElementById('maintenanceCardsContainer');
+                        if (container) {
+                            container.outerHTML = '<div class="portal-empty" id="maintenanceEmptyState"><h3>No maintenance requests found</h3><p>New requests will appear here when tenants submit them.</p></div>';
+                        }
+                    }
+                }, 200);
+            }
+
+            showToast(`Request #${maintenanceId} cleared`);
+        })
+        .catch((error) => {
+            console.error(error);
+            showToast(error.message || 'An error occurred while clearing the request', true);
+        });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,272 @@
+﻿/* ============================================
+   RESPONSIVE DESIGN - SAFE PORTAL/PAGE LAYER
+   Replaces destructive global overrides with scoped responsive rules.
+   ============================================ */
+
+:root {
+    --bp-xs: 480px;
+    --bp-sm: 640px;
+    --bp-md: 768px;
+    --bp-lg: 1024px;
+    --bp-xl: 1280px;
+}
+
+/* Safe media defaults */
+img,
+svg,
+video,
+canvas {
+    max-width: 100%;
+    height: auto;
+}
+
+.table-wrapper,
+.portal-table-wrap,
+.apd-table-wrap,
+.opsdash-table-wrap,
+.leases-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ------------------------------
+   Portal shell responsive tuning
+   ------------------------------ */
+@media (max-width: 1024px) {
+    body.portal-shell .page-header {
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    body.portal-shell .stats-grid,
+    body.portal-shell .content-grid,
+    body.portal-shell .two-column-layout,
+    body.portal-shell .dashboard-grid {
+        gap: 12px !important;
+    }
+}
+
+@media (max-width: 768px) {
+    body.portal-shell .main-content {
+        margin-left: 0 !important;
+        padding: 72px 12px 16px !important;
+    }
+
+    body.portal-shell .page-header {
+        flex-direction: column;
+        align-items: stretch;
+        margin-bottom: 14px !important;
+    }
+
+    body.portal-shell .user-profile {
+        width: 100%;
+        min-width: 0;
+    }
+
+    body.portal-shell .stats-grid,
+    body.portal-shell .dashboard-grid,
+    body.portal-shell .content-grid,
+    body.portal-shell .two-column-layout,
+    body.portal-shell .settings-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    body.portal-shell .section,
+    body.portal-shell .luxury-card,
+    body.portal-shell .stat-card {
+        border-radius: 14px !important;
+    }
+
+    body.portal-shell .section {
+        padding: 14px !important;
+    }
+
+    body.portal-shell .luxury-content {
+        padding: 14px !important;
+    }
+
+    body.portal-shell .form-button-group,
+    body.portal-shell .action-buttons,
+    body.portal-shell .filter-buttons {
+        flex-direction: column !important;
+        display: flex !important;
+        align-items: stretch !important;
+        gap: 10px !important;
+    }
+
+    body.portal-shell .form-button-group .form-btn,
+    body.portal-shell .action-buttons > *,
+    body.portal-shell .filter-buttons > * {
+        width: 100% !important;
+    }
+
+    body.portal-shell table {
+        font-size: 12px;
+    }
+
+    body.portal-shell th,
+    body.portal-shell td {
+        white-space: nowrap;
+    }
+
+    body.portal-shell input:not([type="checkbox"]):not([type="radio"]),
+    body.portal-shell textarea,
+    body.portal-shell select,
+    body.portal-shell .form-input,
+    body.portal-shell .form-select,
+    body.portal-shell .form-textarea,
+    body.portal-shell .input-field {
+        width: 100% !important;
+        min-height: 42px;
+        font-size: 16px !important; /* avoids iOS zoom */
+    }
+
+    body.portal-shell textarea,
+    body.portal-shell .form-textarea {
+        min-height: 100px;
+    }
+
+    /* Dashboard redesign pages */
+    .portal-dashboard__header,
+    .admin-portal-dashboard__header,
+    .opsdash-head {
+        grid-template-columns: 1fr !important;
+    }
+
+    .portal-dashboard__hero,
+    .admin-portal-dashboard__hero,
+    .opsdash-hero,
+    .portal-dashboard__grid,
+    .admin-portal-dashboard__layout,
+    .opsdash-layout {
+        grid-template-columns: 1fr !important;
+    }
+
+    .portal-dashboard__metrics,
+    .admin-portal-dashboard__metrics,
+    .opsdash-metrics {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media (max-width: 480px) {
+    body.portal-shell .main-content {
+        padding: 68px 10px 14px !important;
+    }
+
+    body.portal-shell .page-title {
+        font-size: 22px !important;
+    }
+
+    body.portal-shell .section,
+    body.portal-shell .luxury-card,
+    body.portal-shell .stat-card,
+    body.portal-shell .opsdash-card,
+    body.portal-shell .portal-panel,
+    body.portal-shell .apd-panel {
+        border-radius: 12px !important;
+    }
+
+    body.portal-shell .portal-dashboard__hero,
+    body.portal-shell .admin-portal-dashboard__hero,
+    body.portal-shell .opsdash-hero {
+        padding: 14px !important;
+        border-radius: 14px !important;
+    }
+
+    body.portal-shell .btn,
+    body.portal-shell .btn-luxury,
+    body.portal-shell .form-btn,
+    body.portal-shell button,
+    body.portal-shell input[type="submit"] {
+        min-height: 44px;
+        width: 100%;
+    }
+
+    /* Inline-grid sections in older templates */
+    body.portal-shell [style*="grid-template-columns: repeat(3, 1fr)"],
+    body.portal-shell [style*="grid-template-columns: 1fr 1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* ------------------------------
+   Public page helpers (safe only)
+   ------------------------------ */
+@media (max-width: 768px) {
+    .video-container {
+        width: 100%;
+    }
+
+    .modal-content {
+        width: min(94vw, 720px);
+        max-height: 85vh;
+        overflow-y: auto;
+    }
+}
+
+/* ------------------------------
+   Accessibility
+   ------------------------------ */
+@media (hover: none) and (pointer: coarse) {
+    body.portal-shell a,
+    body.portal-shell button,
+    body.portal-shell input[type="button"],
+    body.portal-shell input[type="submit"] {
+        min-height: 44px;
+        min-width: 44px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* ------------------------------
+   Print
+   ------------------------------ */
+@media print {
+    .sidebar,
+    .top-nav,
+    .top-drawer,
+    .top-drawer-overlay,
+    .sidebar-overlay,
+    .drawer-toggle,
+    .drawer-close,
+    .sidebar-footer,
+    .sidebar-logout,
+    button,
+    .btn,
+    .btn-luxury {
+        display: none !important;
+    }
+
+    body,
+    body.portal-shell {
+        background: #fff !important;
+        color: #000 !important;
+    }
+
+    .main-content,
+    body.portal-shell .main-content {
+        margin-left: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+    }
+
+    .section,
+    .luxury-card,
+    .portal-panel,
+    .apd-panel,
+    .opsdash-card {
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+        background: #fff !important;
+        color: #000 !important;
+    }
+}

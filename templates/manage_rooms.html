@@ -1,0 +1,368 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}Manage Rooms - Casa de Liberty{% endblock %}
+
+{% block content %}
+
+<div class="page-header fade-in-up" style="animation-delay: 0.1s;">
+    <h1 class="page-title">Manage Rooms</h1>
+    <div class="user-profile">
+        <div class="user-info" style="text-align: right;">
+            <p>Admin Panel</p>
+            <span>Staff</span>
+        </div>
+        <div class="user-avatar">A</div>
+    </div>
+</div>
+
+<div style="margin-bottom: 32px; animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.2s backwards;">
+    <p style="color: #94a3b8; font-size: 16px; margin: 0; letter-spacing: 0.5px;">Control room availability and premium settings</p>
+</div>
+
+<!-- Add Room Form -->
+<div class="section fade-in-up" style="margin-bottom: 48px; animation-delay: 0.15s; padding: 32px; border-radius: 16px;">
+    <style>
+        .add-room-form-container {
+            width: 100%;
+        }
+        
+        .form-header {
+            margin-bottom: 32px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        html.dark-mode .form-header {
+            border-bottom-color: var(--border-color);
+        }
+        
+        .form-header h2 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        
+        html.dark-mode .form-header h2 {
+            color: var(--text-primary);
+        }
+        
+        .form-header p {
+            margin: 8px 0 0 0;
+            color: #64748b;
+            font-size: 14px;
+        }
+        
+        html.dark-mode .form-header p {
+            color: var(--text-secondary);
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group.full {
+            grid-column: 1;
+        }
+        
+        .form-label {
+            margin-bottom: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            color: #1e293b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        html.dark-mode .form-label {
+            color: var(--text-primary);
+        }
+        
+        .form-input,
+        .form-select,
+        .form-textarea {
+            padding: 14px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-size: 14px;
+            color: #1e293b;
+            background: white;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        html.dark-mode .form-input,
+        html.dark-mode .form-select,
+        html.dark-mode .form-textarea {
+            background: var(--bg-tertiary);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+        
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            background: white;
+        }
+        
+        html.dark-mode .form-input:focus,
+        html.dark-mode .form-select:focus,
+        html.dark-mode .form-textarea:focus {
+            background: var(--bg-tertiary);
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+        
+        .form-input::placeholder,
+        .form-textarea::placeholder {
+            color: #94a3b8;
+        }
+        
+        html.dark-mode .form-input::placeholder,
+        html.dark-mode .form-textarea::placeholder {
+            color: #64748b;
+        }
+        
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .form-button-group {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            padding-top: 24px;
+            border-top: 2px solid #e2e8f0;
+            margin-top: 32px;
+        }
+        
+        html.dark-mode .form-button-group {
+            border-top-color: var(--border-color);
+        }
+        
+        .form-btn {
+            padding: 14px 32px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .form-btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .form-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .form-btn-secondary {
+            background: #f1f5f9;
+            color: #64748b;
+            border: 2px solid #e2e8f0;
+        }
+        
+        html.dark-mode .form-btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border-color: var(--border-color);
+        }
+        
+        .form-btn-secondary:hover {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+        
+        html.dark-mode .form-btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+        }
+        
+        .form-messages {
+            margin-top: 24px;
+            padding: 0;
+            list-style: none;
+        }
+        
+        .form-messages li {
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid #10b981;
+            font-size: 14px;
+        }
+        
+        html.dark-mode .form-messages li {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+    </style>
+    
+    <div class="add-room-form-container">
+        <div class="form-header">
+            <h2>✨ Add New Room</h2>
+            <p>Create a new room listing for guests to book</p>
+        </div>
+        
+        <form method="post" action="{% url 'add_room' %}">
+            {% csrf_token %}
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">Room Number</label>
+                    <input type="text" name="room_number" required class="form-input" placeholder="e.g., 101, 102A" />
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Room Type</label>
+                    <select name="room_type" required class="form-select">
+                        <option value="">Select room type...</option>
+                        <option value="standard">Standard Room</option>
+                        <option value="deluxe">Deluxe Room</option>
+                        <option value="suite">Suite</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Price per Night (₱)</label>
+                    <input type="number" name="price_per_night" step="0.01" required class="form-input" placeholder="1000" />
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Capacity (Guests)</label>
+                    <input type="number" name="capacity" min="1" required class="form-input" placeholder="2" />
+                </div>
+                
+                <div class="form-group full">
+                    <label class="form-label">Description</label>
+                    <textarea name="description" required class="form-textarea" placeholder="Describe the room features, amenities, and what makes it special..."></textarea>
+                </div>
+                
+                <div class="form-group full">
+                    <label class="form-label">Amenities (comma separated)</label>
+                    <input type="text" name="amenities" class="form-input" placeholder="WiFi, TV, Air Conditioning, Mini Bar, Private Bathroom" />
+                </div>
+                
+                <div class="form-group full">
+                    <label class="form-label">Image URL (optional)</label>
+                    <input type="url" name="image_url" class="form-input" placeholder="https://example.com/room-image.jpg" />
+                </div>
+            </div>
+            
+            <div class="form-button-group">
+                <button type="reset" class="form-btn form-btn-secondary">
+                    ⟲ Clear Form
+                </button>
+                <button type="submit" class="form-btn form-btn-primary">
+                    ✓ Add Room
+                </button>
+            </div>
+            
+            {% if messages %}
+                <ul class="form-messages">
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Rooms Grid -->
+<div class="luxury-grid">
+    {% for room in rooms %}
+    <div class="luxury-card fade-in-up" style="animation-delay: {{ forloop.counter|add:0.2 }}s;">
+        <!-- Room Image -->
+        <div class="luxury-image">
+            🏨
+        </div>
+        
+        <!-- Room Content -->
+        <div class="luxury-content">
+            <!-- Room Header -->
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px;">
+                <div>
+                    <h3 class="luxury-title">Room {{ room.room_number }}</h3>
+                    <p class="luxury-subtitle">{{ room.get_room_type_display }}</p>
+                </div>
+                <span class="luxury-badge luxury-badge-{% if room.is_available %}success{% else %}danger{% endif %}">
+                    {% if room.is_available %}✓ Available{% else %}✗ Unavailable{% endif %}
+                </span>
+            </div>
+            
+            <!-- Price -->
+            <div style="margin: 8px 0 24px 0;">
+                <span class="luxury-price">₱{{ room.price_per_night }}</span>
+                <span class="luxury-price-label">/night</span>
+            </div>
+            
+            <!-- Divider -->
+            <div class="luxury-divider"></div>
+            
+            <!-- Room Details -->
+            <div class="luxury-info">
+                <div class="luxury-info-item">
+                    <span class="luxury-info-icon">👥</span>
+                    <span>Accommodates up to {{ room.capacity }} guests</span>
+                </div>
+            </div>
+            
+            <!-- Description -->
+            <p class="luxury-description">{{ room.description }}</p>
+            
+            <!-- Amenities -->
+            <div class="luxury-features">
+                <p class="luxury-features-title">✨ Amenities</p>
+                <p class="luxury-features-text">{{ room.amenities|default:"Premium room with all essential amenities" }}</p>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="luxury-button-group full">
+                <form method="post" action="{% url 'toggle_room_availability' room.id %}" style="width: 100%; margin: 0;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-luxury {% if room.is_available %}btn-luxury-danger{% else %}btn-luxury-success{% endif %}" style="width: 100%;">
+                        {% if room.is_available %}
+                            🔒 Mark Unavailable
+                        {% else %}
+                            🔓 Mark Available
+                        {% endif %}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if not rooms %}
+<div style="text-align: center; padding: 100px 20px; background: linear-gradient(135deg, #f8fafb 0%, #f1f5f9 100%); border-radius: 20px; animation: fadeInUp 0.6s ease-out;">
+    <div style="font-size: 100px; margin-bottom: 24px; animation: fadeInUp 0.6s ease-out 0.1s backwards;">🏨</div>
+    <h3 style="font-size: 28px; font-weight: 800; color: #1e293b; margin-bottom: 12px;">No Rooms Available</h3>
+    <p style="color: #64748b; font-size: 16px; margin: 0;">Add rooms through the admin panel to get started</p>
+</div>
+{% endif %}
+{% endblock %}

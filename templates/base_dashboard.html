@@ -1,0 +1,1601 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Casa de Liberty{% endblock %}</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20100%20100%22%3E%3Ctext%20y=%22.9em%22%20font-size=%2290%22%3E%F0%9F%8F%A8%3C/text%3E%3C/svg%3E">
+    <!-- Global Theme Manager - Load early to prevent theme flashing -->
+    <script src="{% static 'js/theme.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=20260226-portal">
+    <link rel="stylesheet" href="{% static 'css/forms.css' %}">
+    <link rel="stylesheet" href="{% static 'css/responsive.css' %}?v=20260226-portal">
+    <style>
+        .notification-indicator {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 10px;
+            height: 10px;
+            background-color: #ef4444;  /* Red color */
+            border-radius: 50%;
+            display: none;
+            animation: pulse 2s infinite;  /* Pulsing animation */
+            border: 2px solid white;
+        }
+
+        .notification-indicator.show {
+            display: block;  /* Show dot only when unread count > 0 */
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+            50% {
+                box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.3);
+            }
+        }
+
+        .sidebar-link {
+            position: relative;
+        }
+
+        /* ===== PAGE TRANSITION ANIMATIONS ===== */
+        /* Smooth fade/slide when navigating between pages */
+        @keyframes pageTransitionOut {
+            0% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+        }
+        
+        @keyframes pageTransitionIn {
+            0% {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .page-transition-out {
+            animation: pageTransitionOut 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        
+        .page-transition-in {
+            animation: pageTransitionIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        
+        .main-content {
+            animation: pageTransitionIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Mobile Menu Toggle Button */
+        @media (max-width: 767px) {
+            .mobile-menu-toggle {
+                display: flex !important;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .mobile-menu-toggle {
+                display: none !important;
+            }
+        }
+
+        /* Sidebar Overlay */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 1500;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        /* Mobile-only drawer elements should be hidden on desktop.
+           Without this, the drawer markup appears as a plain list of blue links. */
+        .top-drawer,
+        .top-drawer-overlay,
+        .drawer-close {
+            display: none;
+        }
+
+        @media (max-width: 767px) {
+            .top-drawer,
+            .top-drawer-overlay {
+                display: block;
+            }
+
+            .drawer-close {
+                display: inline-block;
+            }
+        }
+
+        /* -----------------------------------------------------------------
+           Portal shell overrides (final layer)
+           These rules stabilize layout and improve visual quality across
+           both tenant and admin dashboards, regardless of legacy style.css.
+        ------------------------------------------------------------------ */
+        :root {
+            --portal-shell-bg: #071021;
+            --portal-shell-surface: rgba(10, 20, 38, 0.88);
+            --portal-shell-surface-2: rgba(17, 28, 52, 0.92);
+            --portal-shell-border: rgba(148, 163, 184, 0.16);
+            --portal-shell-text: #e6edf7;
+            --portal-shell-muted: #9fb0c9;
+            --portal-shell-accent: #3b82f6;
+            --portal-shell-accent-2: #0ea5e9;
+            --portal-shell-sidebar-width: 236px;
+            --portal-shell-shadow: 0 18px 50px rgba(2, 8, 23, 0.28);
+        }
+
+        body.portal-shell {
+            --bg-primary: rgba(12, 21, 38, 0.88);
+            --bg-secondary: rgba(18, 30, 52, 0.92);
+            --bg-tertiary: rgba(148, 163, 184, 0.06);
+            --card-bg: rgba(12, 21, 38, 0.9);
+            --text-primary: #eaf1fb;
+            --text-secondary: #9fb0c9;
+            --border-color: rgba(148, 163, 184, 0.16);
+            --accent: #3b82f6;
+            --accent-dark: #2563eb;
+            background:
+                radial-gradient(circle at 12% 12%, rgba(59, 130, 246, 0.13) 0, rgba(59, 130, 246, 0) 38%),
+                radial-gradient(circle at 92% 10%, rgba(14, 165, 233, 0.10) 0, rgba(14, 165, 233, 0) 42%),
+                linear-gradient(180deg, #040b16 0%, #091327 52%, #060d1b 100%);
+            color: var(--portal-shell-text);
+        }
+
+        html:not(.dark-mode) body.portal-shell {
+            --bg-primary: rgba(255, 255, 255, 0.94);
+            --bg-secondary: rgba(248, 251, 255, 0.95);
+            --bg-tertiary: rgba(15, 23, 42, 0.035);
+            --card-bg: rgba(255, 255, 255, 0.94);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --border-color: rgba(15, 23, 42, 0.08);
+            background:
+                radial-gradient(circle at 12% 12%, rgba(59, 130, 246, 0.09) 0, rgba(59, 130, 246, 0) 40%),
+                radial-gradient(circle at 92% 10%, rgba(14, 165, 233, 0.08) 0, rgba(14, 165, 233, 0) 42%),
+                linear-gradient(180deg, #f7fbff 0%, #eef5ff 52%, #f6f9ff 100%);
+        }
+
+        body.portal-shell .sidebar {
+            width: var(--portal-shell-sidebar-width) !important;
+            background:
+                linear-gradient(180deg, rgba(5, 10, 22, 0.96) 0%, rgba(6, 12, 23, 0.98) 100%) !important;
+            border-right: 1px solid var(--portal-shell-border);
+            box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(8px);
+        }
+
+        body.portal-shell .sidebar-logo {
+            padding: 18px 16px !important;
+            border-bottom: 1px solid var(--portal-shell-border) !important;
+            gap: 10px !important;
+            min-height: 86px;
+        }
+
+        body.portal-shell .sidebar-logo-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+            box-shadow: 0 10px 24px rgba(249, 115, 22, 0.3);
+        }
+
+        body.portal-shell .sidebar-logo-text h2 {
+            font-size: 15px !important;
+            line-height: 1.15;
+            letter-spacing: 0.01em;
+        }
+
+        body.portal-shell .sidebar-logo-text p {
+            font-size: 11px !important;
+            color: #90a3bf !important;
+            margin-top: 3px !important;
+        }
+
+        body.portal-shell .sidebar-menu {
+            padding: 14px 10px 10px !important;
+        }
+
+        body.portal-shell .sidebar-menu a {
+            margin: 4px 0 !important;
+            padding: 12px 14px !important;
+            border-radius: 12px;
+            color: #c9d6ea !important;
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            border: 1px solid transparent;
+            transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+        }
+
+        body.portal-shell .sidebar-menu a span {
+            width: 18px !important;
+            margin-right: 10px !important;
+            opacity: 0.95;
+        }
+
+        body.portal-shell .sidebar-menu a:hover {
+            background: rgba(148, 163, 184, 0.08) !important;
+            border-color: rgba(148, 163, 184, 0.12);
+            color: #eff6ff !important;
+            transform: translateX(1px);
+        }
+
+        body.portal-shell .sidebar-menu a.active {
+            background:
+                linear-gradient(90deg, rgba(37, 99, 235, 0.18) 0%, rgba(14, 165, 233, 0.08) 100%) !important;
+            border: 1px solid rgba(59, 130, 246, 0.22);
+            border-left: 1px solid rgba(59, 130, 246, 0.22) !important;
+            box-shadow: inset 3px 0 0 rgba(59, 130, 246, 0.95);
+            padding-left: 14px !important;
+            color: #ffffff !important;
+        }
+
+        body.portal-shell .sidebar-footer {
+            border-top: 1px solid var(--portal-shell-border) !important;
+            padding: 14px 12px 16px !important;
+            background: rgba(7, 13, 26, 0.65);
+        }
+
+        body.portal-shell .sidebar-user-avatar {
+            background: linear-gradient(135deg, #1d4ed8 0%, #7c3aed 100%) !important;
+            box-shadow: 0 8px 18px rgba(59, 130, 246, 0.25);
+        }
+
+        body.portal-shell .sidebar-user-info p {
+            color: #f8fafc !important;
+            font-size: 13px !important;
+            font-weight: 700 !important;
+        }
+
+        body.portal-shell .sidebar-user-info span {
+            color: #97abc9 !important;
+            font-size: 11px !important;
+        }
+
+        body.portal-shell .dark-mode-toggle-footer {
+            padding: 4px 0 10px;
+            display: flex;
+            justify-content: center;
+        }
+
+        body.portal-shell .sidebar-theme-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+        }
+
+        body.portal-shell .sidebar-theme-toggle-label {
+            display: inline-flex;
+            flex-direction: row-reverse;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        body.portal-shell .sidebar-theme-toggle-input {
+            position: absolute;
+            opacity: 0;
+            width: 1px;
+            height: 1px;
+            pointer-events: none;
+        }
+
+        body.portal-shell .sidebar-theme-toggle-slider {
+            display: inline-flex;
+            align-items: center;
+            width: 46px;
+            height: 24px;
+            background: #202938;
+            border: 2px solid rgba(148, 163, 184, 0.36);
+            border-radius: 999px;
+            position: relative;
+            transition: all 0.25s ease;
+        }
+
+        body.portal-shell .sidebar-theme-toggle-slider::after {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            left: 1px;
+            border-radius: 50%;
+            background: #f59e0b;
+            box-shadow: 0 2px 6px rgba(245, 158, 11, 0.45);
+            transition: transform 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        body.portal-shell .sidebar-theme-toggle-input:checked + .sidebar-theme-toggle-slider {
+            background: #f8fafc;
+            border-color: #e2e8f0;
+        }
+
+        body.portal-shell .sidebar-theme-toggle-input:checked + .sidebar-theme-toggle-slider::after {
+            transform: translateX(22px);
+        }
+
+        body.portal-shell .sidebar-theme-toggle-input:focus-visible + .sidebar-theme-toggle-slider {
+            outline: 2px solid rgba(59, 130, 246, 0.9);
+            outline-offset: 2px;
+        }
+
+        body.portal-shell .sidebar-theme-toggle-text {
+            color: #97abc9;
+            font-size: 13px;
+            font-weight: 600;
+            line-height: 1;
+            min-width: 44px;
+            white-space: nowrap;
+            text-align: left;
+            text-transform: capitalize;
+            letter-spacing: 0.01em;
+        }
+
+        html:not(.dark-mode) body.portal-shell .sidebar-theme-toggle-text {
+            color: #475569;
+        }
+
+        body.portal-shell .sidebar-logout {
+            background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+            border: 1px solid rgba(248, 113, 113, 0.18);
+            box-shadow: 0 10px 20px rgba(127, 29, 29, 0.22);
+            transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
+        }
+
+        body.portal-shell .sidebar-logout:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 24px rgba(127, 29, 29, 0.3);
+            filter: brightness(1.03);
+        }
+
+        body.portal-shell .main-content {
+            margin-left: var(--portal-shell-sidebar-width) !important;
+            min-height: 100vh;
+            padding: 18px 20px 22px !important;
+            position: relative;
+            background:
+                radial-gradient(circle at 16% 8%, rgba(59, 130, 246, 0.07) 0, rgba(59, 130, 246, 0) 34%),
+                radial-gradient(circle at 90% 4%, rgba(14, 165, 233, 0.05) 0, rgba(14, 165, 233, 0) 32%),
+                transparent;
+        }
+
+        body.portal-shell .main-content > * {
+            position: relative;
+            z-index: 1;
+            width: min(100%, 1340px);
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        body.portal-shell .alert {
+            border-radius: 12px;
+            border: 1px solid var(--portal-shell-border);
+            background: rgba(15, 23, 42, 0.72);
+            color: #e2e8f0;
+            box-shadow: var(--portal-shell-shadow);
+        }
+
+        html:not(.dark-mode) body.portal-shell .alert {
+            background: rgba(255, 255, 255, 0.92);
+            color: #0f172a;
+        }
+
+        /* Shared page primitives used by many portal templates */
+        body.portal-shell .page-header {
+            display: flex !important;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            width: 100% !important;
+            max-width: none !important;
+            min-width: 0;
+            justify-self: stretch !important;
+            margin: 6px auto 18px !important;
+            padding: 0 !important;
+        }
+
+        body.portal-shell .page-title {
+            margin: 0 !important;
+            color: var(--text-primary) !important;
+            font-size: clamp(24px, 2vw, 32px) !important;
+            line-height: 1.08;
+            letter-spacing: -0.02em;
+            font-weight: 800 !important;
+        }
+
+        /* Keep titles anchored left and push profile/actions to the far right.
+           This prevents title/profile clustering on some legacy pages. */
+        body.portal-shell .page-header > .page-title {
+            flex: 1 1 auto;
+            margin-right: auto !important;
+            text-align: left !important;
+            min-width: 0;
+        }
+
+        body.portal-shell .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-radius: 14px;
+            border: 1px solid var(--border-color);
+            background: linear-gradient(180deg, var(--bg-primary) 0%, rgba(148, 163, 184, 0.03) 100%);
+            padding: 8px 10px;
+            box-shadow: var(--portal-shell-shadow);
+            min-width: 190px;
+        }
+
+        body.portal-shell .page-header > .user-profile {
+            margin-left: 10px;
+            flex-shrink: 0;
+        }
+
+        body.portal-shell .user-info p {
+            color: var(--text-primary) !important;
+            font-size: 13px !important;
+            font-weight: 700 !important;
+            margin: 0 !important;
+        }
+
+        body.portal-shell .user-info span {
+            color: var(--text-secondary) !important;
+            font-size: 11px !important;
+            margin-top: 2px;
+            display: block;
+        }
+
+        body.portal-shell .user-avatar {
+            width: 36px !important;
+            height: 36px !important;
+            border-radius: 12px !important;
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%) !important;
+            color: #fff !important;
+            box-shadow: 0 10px 18px rgba(59, 130, 246, 0.22);
+            font-weight: 800 !important;
+        }
+
+        body.portal-shell .section,
+        body.portal-shell .luxury-card {
+            background: linear-gradient(180deg, var(--card-bg) 0%, rgba(148, 163, 184, 0.02) 100%) !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 16px !important;
+            box-shadow: var(--portal-shell-shadow);
+            color: var(--text-primary);
+        }
+
+        body.portal-shell .luxury-card {
+            overflow: hidden;
+        }
+
+        body.portal-shell .luxury-content {
+            background: transparent !important;
+            color: inherit !important;
+        }
+
+        body.portal-shell .luxury-title {
+            color: var(--text-primary) !important;
+            letter-spacing: -0.02em;
+        }
+
+        body.portal-shell .luxury-subtitle,
+        body.portal-shell .section p {
+            color: var(--text-secondary);
+        }
+
+        body.portal-shell .luxury-divider {
+            border-color: var(--border-color) !important;
+            background: var(--border-color) !important;
+        }
+
+        body.portal-shell .stats-grid {
+            gap: 14px !important;
+        }
+
+        body.portal-shell .stat-card {
+            background: linear-gradient(180deg, var(--card-bg) 0%, rgba(148, 163, 184, 0.02) 100%) !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 16px !important;
+            box-shadow: var(--portal-shell-shadow) !important;
+            color: var(--text-primary) !important;
+        }
+
+        body.portal-shell .stat-label,
+        body.portal-shell .stat-subtitle {
+            color: var(--text-secondary) !important;
+        }
+
+        body.portal-shell .stat-value {
+            color: var(--text-primary) !important;
+        }
+
+        body.portal-shell .table-wrapper,
+        body.portal-shell .leases-table-wrapper {
+            border-radius: 14px;
+            border: 1px solid var(--border-color);
+            background: rgba(148, 163, 184, 0.03);
+            overflow: auto;
+        }
+
+        body.portal-shell .admin-table,
+        body.portal-shell .leases-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: transparent !important;
+            box-shadow: none !important;
+        }
+
+        body.portal-shell .admin-table thead,
+        body.portal-shell .leases-table thead {
+            background: rgba(148, 163, 184, 0.04) !important;
+        }
+
+        body.portal-shell .admin-table th,
+        body.portal-shell .admin-table td,
+        body.portal-shell .leases-table th,
+        body.portal-shell .leases-table td {
+            color: var(--text-primary) !important;
+            border-bottom-color: rgba(148, 163, 184, 0.08) !important;
+        }
+
+        body.portal-shell .admin-table th,
+        body.portal-shell .leases-table th {
+            color: var(--text-secondary) !important;
+        }
+
+        body.portal-shell .btn-luxury,
+        body.portal-shell .filter-btn,
+        body.portal-shell .form-btn,
+        body.portal-shell button[type="submit"] {
+            border-radius: 12px !important;
+            border: 1px solid transparent;
+            font-weight: 700 !important;
+            transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease, border-color 160ms ease;
+        }
+
+        body.portal-shell .btn-luxury:hover,
+        body.portal-shell .filter-btn:hover,
+        body.portal-shell .form-btn:hover,
+        body.portal-shell button[type="submit"]:hover {
+            transform: translateY(-1px);
+        }
+
+        body.portal-shell .btn-luxury-primary,
+        body.portal-shell .form-btn-primary {
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%) !important;
+            color: #fff !important;
+            box-shadow: 0 14px 22px rgba(59, 130, 246, 0.2);
+        }
+
+        body.portal-shell .btn-luxury-secondary,
+        body.portal-shell .form-btn-secondary {
+            background: rgba(148, 163, 184, 0.06) !important;
+            border-color: var(--border-color) !important;
+            color: var(--text-primary) !important;
+        }
+
+        body.portal-shell .btn-luxury-danger {
+            background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%) !important;
+            color: #fff !important;
+            box-shadow: 0 14px 22px rgba(220, 38, 38, 0.18);
+        }
+
+        body.portal-shell .input-field,
+        body.portal-shell .form-input,
+        body.portal-shell .form-select,
+        body.portal-shell .form-textarea,
+        body.portal-shell select,
+        body.portal-shell textarea,
+        body.portal-shell input[type="text"],
+        body.portal-shell input[type="number"],
+        body.portal-shell input[type="date"],
+        body.portal-shell input[type="email"],
+        body.portal-shell input[type="password"] {
+            background: rgba(148, 163, 184, 0.03) !important;
+            border: 1px solid var(--border-color) !important;
+            color: var(--text-primary) !important;
+            border-radius: 12px !important;
+        }
+
+        body.portal-shell textarea::placeholder,
+        body.portal-shell input::placeholder {
+            color: var(--text-secondary) !important;
+            opacity: 0.8;
+        }
+
+        body.portal-shell .input-field:focus,
+        body.portal-shell .form-input:focus,
+        body.portal-shell .form-select:focus,
+        body.portal-shell .form-textarea:focus,
+        body.portal-shell select:focus,
+        body.portal-shell textarea:focus,
+        body.portal-shell input:focus {
+            outline: none;
+            border-color: rgba(59, 130, 246, 0.34) !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12) !important;
+        }
+
+        /* Native select dropdown menus (Windows/Chrome/Edge).
+           Use color-scheme + option colors so the popup follows the active theme
+           as much as the browser/OS allows. */
+        body.portal-shell select,
+        body.portal-shell .form-select,
+        body.portal-shell .input-field {
+            color-scheme: light;
+        }
+
+        html.dark-mode body.portal-shell select,
+        html.dark-mode body.portal-shell .form-select,
+        html.dark-mode body.portal-shell .input-field {
+            color-scheme: dark;
+        }
+
+        body.portal-shell select option,
+        body.portal-shell .form-select option,
+        body.portal-shell .input-field option {
+            color: #0f172a !important;
+            background: #ffffff !important;
+            -webkit-text-fill-color: #0f172a !important;
+        }
+
+        body.portal-shell select optgroup,
+        body.portal-shell .form-select optgroup,
+        body.portal-shell .input-field optgroup {
+            color: #0f172a !important;
+            background: #ffffff !important;
+            font-style: normal;
+        }
+
+        html.dark-mode body.portal-shell select option,
+        html.dark-mode body.portal-shell .form-select option,
+        html.dark-mode body.portal-shell .input-field option {
+            color: #eaf1fb !important;
+            background: #0f172a !important;
+            -webkit-text-fill-color: #eaf1fb !important;
+        }
+
+        html.dark-mode body.portal-shell select optgroup,
+        html.dark-mode body.portal-shell .form-select optgroup,
+        html.dark-mode body.portal-shell .input-field optgroup {
+            color: #cbd5e1 !important;
+            background: #0f172a !important;
+            font-style: normal;
+        }
+
+        body.portal-shell .badge {
+            border: 1px solid rgba(148, 163, 184, 0.12);
+        }
+
+        /* Shared utility classes for legacy portal pages (tenant + admin) */
+        body.portal-shell .page-subtitle {
+            margin: -8px 0 18px !important;
+            color: var(--text-secondary) !important;
+            font-size: 14px !important;
+            line-height: 1.5;
+        }
+
+        body.portal-shell .portal-stack {
+            display: grid;
+            gap: 16px;
+        }
+
+        body.portal-shell .portal-grid-2 {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 16px;
+        }
+
+        body.portal-shell .portal-grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        body.portal-shell .portal-panel {
+            background: linear-gradient(180deg, var(--card-bg) 0%, rgba(148, 163, 184, 0.02) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: var(--portal-shell-shadow);
+            overflow: hidden;
+        }
+
+        body.portal-shell .portal-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 16px 18px 12px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+        }
+
+        body.portal-shell .portal-panel-title {
+            margin: 0;
+            font-size: 18px;
+            line-height: 1.2;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+        }
+
+        body.portal-shell .portal-panel-subtitle {
+            margin: 4px 0 0;
+            color: var(--text-secondary);
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        body.portal-shell .portal-panel-body {
+            padding: 16px 18px 18px;
+        }
+
+        body.portal-shell .portal-kpi {
+            padding: 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.08);
+            background: rgba(148, 163, 184, 0.03);
+        }
+
+        body.portal-shell .portal-kpi-label {
+            margin: 0 0 8px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        body.portal-shell .portal-kpi-value {
+            margin: 0;
+            color: var(--text-primary);
+            font-size: clamp(20px, 2vw, 28px);
+            line-height: 1.1;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        body.portal-shell .portal-kpi-note {
+            margin: 8px 0 0;
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        body.portal-shell .portal-pill,
+        body.portal-shell .portal-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            background: rgba(148, 163, 184, 0.05);
+            color: var(--text-secondary);
+            font-size: 11px;
+            line-height: 1;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        body.portal-shell .portal-badge-success {
+            background: rgba(16, 185, 129, 0.14);
+            border-color: rgba(16, 185, 129, 0.26);
+            color: #34d399;
+        }
+
+        html:not(.dark-mode) body.portal-shell .portal-badge-success {
+            color: #047857;
+        }
+
+        body.portal-shell .portal-badge-warn {
+            background: rgba(245, 158, 11, 0.14);
+            border-color: rgba(245, 158, 11, 0.26);
+            color: #fbbf24;
+        }
+
+        html:not(.dark-mode) body.portal-shell .portal-badge-warn {
+            color: #b45309;
+        }
+
+        body.portal-shell .portal-badge-danger {
+            background: rgba(239, 68, 68, 0.14);
+            border-color: rgba(239, 68, 68, 0.24);
+            color: #fda4af;
+        }
+
+        html:not(.dark-mode) body.portal-shell .portal-badge-danger {
+            color: #b91c1c;
+        }
+
+        body.portal-shell .portal-badge-info {
+            background: rgba(59, 130, 246, 0.14);
+            border-color: rgba(59, 130, 246, 0.24);
+            color: #93c5fd;
+        }
+
+        html:not(.dark-mode) body.portal-shell .portal-badge-info {
+            color: #1d4ed8;
+        }
+
+        body.portal-shell .portal-empty {
+            text-align: center;
+            padding: 36px 18px;
+            border-radius: 14px;
+            border: 1px dashed rgba(148, 163, 184, 0.18);
+            background: rgba(148, 163, 184, 0.02);
+            color: var(--text-secondary);
+        }
+
+        body.portal-shell .portal-empty h3 {
+            margin: 0 0 8px;
+            color: var(--text-primary);
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        body.portal-shell .portal-empty p {
+            margin: 0;
+            color: var(--text-secondary);
+        }
+
+        body.portal-shell .portal-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: transparent;
+        }
+
+        body.portal-shell .portal-table thead {
+            background: rgba(148, 163, 184, 0.04);
+        }
+
+        body.portal-shell .portal-table th {
+            padding: 12px 14px;
+            text-align: left;
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.10);
+        }
+
+        body.portal-shell .portal-table td {
+            padding: 12px 14px;
+            color: var(--text-primary);
+            font-size: 13px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+            vertical-align: top;
+        }
+
+        body.portal-shell .portal-table tbody tr:hover {
+            background: rgba(59, 130, 246, 0.04);
+        }
+
+        body.portal-shell .portal-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        body.portal-shell .portal-toolbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        body.portal-shell .portal-link-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            background: rgba(59, 130, 246, 0.12);
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            transition: transform 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+        }
+
+        body.portal-shell .portal-link-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 18px rgba(59, 130, 246, 0.14);
+            background: rgba(59, 130, 246, 0.18);
+        }
+
+        body.portal-shell .portal-link-btn.primary {
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+            border-color: rgba(59, 130, 246, 0.24);
+            color: #fff;
+            box-shadow: 0 14px 22px rgba(59, 130, 246, 0.2);
+        }
+
+        body.portal-shell .portal-link-btn.primary:hover {
+            filter: brightness(1.04);
+            box-shadow: 0 16px 26px rgba(59, 130, 246, 0.26);
+        }
+
+        body.portal-shell .portal-link-btn.danger {
+            background: rgba(220, 38, 38, 0.12);
+            border-color: rgba(220, 38, 38, 0.2);
+        }
+
+        body.portal-shell .portal-note {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 767px) {
+            body.portal-shell {
+                --portal-shell-sidebar-width: 220px;
+            }
+
+            body.portal-shell .sidebar-theme-toggle-label {
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 767px) {
+            body.portal-shell .sidebar {
+                width: min(86vw, 300px) !important;
+            }
+
+            body.portal-shell .main-content {
+                margin-left: 0 !important;
+                padding: 70px 12px 14px !important;
+            }
+
+            /* Always-visible menu button fallback for phone nav access. */
+            body.portal-shell .floating-drawer-toggle {
+                position: fixed;
+                top: calc(12px + env(safe-area-inset-top, 0px));
+                left: 12px;
+                right: auto;
+                bottom: auto;
+                width: 46px !important;
+                height: 46px !important;
+                min-height: 46px !important;
+                padding: 0 !important;
+                border: 1px solid rgba(147, 197, 253, 0.35);
+                border-radius: 12px;
+                background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+                color: #ffffff;
+                font-size: 21px;
+                line-height: 1;
+                box-shadow: 0 14px 28px rgba(37, 99, 235, 0.36);
+                cursor: pointer;
+                z-index: 1900;
+                display: inline-flex !important;
+                align-items: center;
+                justify-content: center;
+                pointer-events: auto;
+                transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
+            }
+
+            body.portal-shell .floating-drawer-toggle:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 18px 30px rgba(37, 99, 235, 0.42);
+                filter: brightness(1.04);
+            }
+
+            body.portal-shell .floating-drawer-toggle:active {
+                transform: translateY(0);
+            }
+
+            body.portal-shell .floating-drawer-toggle:focus-visible {
+                outline: 2px solid #93c5fd;
+                outline-offset: 2px;
+            }
+
+            html.dark-mode body.portal-shell .floating-drawer-toggle {
+                box-shadow: 0 16px 30px rgba(30, 64, 175, 0.48);
+            }
+
+            body.portal-shell .sidebar-footer {
+                padding: 12px 10px 14px !important;
+            }
+
+            body.portal-shell .sidebar-theme-toggle-label {
+                width: 100%;
+                justify-content: center;
+            }
+
+            body.portal-shell .portal-grid-2,
+            body.portal-shell .portal-grid-3 {
+                grid-template-columns: 1fr;
+            }
+
+            body.portal-shell .portal-panel-header {
+                padding: 14px 14px 10px;
+            }
+
+            body.portal-shell .portal-panel-body {
+                padding: 14px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            body.portal-shell .floating-drawer-toggle {
+                display: none !important;
+            }
+        }
+    </style>
+    </head>
+    <body class="portal-shell page-{{ request.resolver_match.url_name|default:'portal' }}">
+    <!-- Top Navigation (mobile) - replaces hamburger and footer nav -->
+    <nav class="top-nav" id="topNav">
+        <!-- Drawer toggle (mobile) -->
+        <button class="drawer-toggle" id="drawerToggle" aria-label="Open navigation drawer">▤</button>
+
+        <ul class="top-nav-menu">
+            {% if user.is_staff %}
+                <li>
+                    <a href="{% url 'admin_dashboard' %}" class="top-nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+                        <span class="top-nav-icon">📊</span>
+                        <span class="top-nav-label">Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'manage_leases' %}" class="top-nav-link {% if request.resolver_match.url_name == 'manage_leases' %}active{% endif %}">
+                        <span class="top-nav-icon">📋</span>
+                        <span class="top-nav-label">Leases</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'manage_apartments' %}" class="top-nav-link {% if request.resolver_match.url_name == 'manage_apartments' %}active{% endif %}">
+                        <span class="top-nav-icon">🏢</span>
+                        <span class="top-nav-label">Apartments</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'admin_calendar' %}" class="top-nav-link {% if request.resolver_match.url_name == 'admin_calendar' %}active{% endif %}">
+                        <span class="top-nav-icon">📅</span>
+                        <span class="top-nav-label">Calendar</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'manage_tenants' %}" class="top-nav-link {% if request.resolver_match.url_name == 'manage_tenants' %}active{% endif %}">
+                        <span class="top-nav-icon">👥</span>
+                        <span class="top-nav-label">Tenants</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'staff_maintenance' %}" class="top-nav-link {% if request.resolver_match.url_name == 'staff_maintenance' %}active{% endif %}">
+                        <span class="top-nav-icon">🔧</span>
+                        <span class="top-nav-label">Maintenance</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'settings' %}" class="top-nav-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
+                        <span class="top-nav-icon">⚙️</span>
+                        <span class="top-nav-label">Settings</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'logout' %}" class="top-nav-link">
+                        <span class="top-nav-icon">🚪</span>
+                        <span class="top-nav-label">Log Out</span>
+                    </a>
+                </li>
+            {% else %}
+                <li>
+                    <a href="{% url 'dashboard' %}" class="top-nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                        <span class="top-nav-icon">📊</span>
+                        <span class="top-nav-label">Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'my_leases' %}" class="top-nav-link {% if request.resolver_match.url_name == 'my_leases' %}active{% endif %}">
+                        <span class="top-nav-icon">🏠</span>
+                        <span class="top-nav-label">Leases</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'payments' %}" class="top-nav-link {% if request.resolver_match.url_name == 'payments' %}active{% endif %}">
+                        <span class="top-nav-icon">💳</span>
+                        <span class="top-nav-label">Payments</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'tenant_calendar' %}" class="top-nav-link {% if request.resolver_match.url_name == 'tenant_calendar' %}active{% endif %}">
+                        <span class="top-nav-icon">📅</span>
+                        <span class="top-nav-label">Calendar</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'maintenance' %}" class="top-nav-link {% if request.resolver_match.url_name == 'maintenance' %}active{% endif %}">
+                        <span class="top-nav-icon">🔧</span>
+                        <span class="top-nav-label">Maintenance</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'notifications' %}" class="top-nav-link {% if request.resolver_match.url_name == 'notifications' %}active{% endif %}">
+                        <span class="top-nav-icon">🔔</span>
+                        <span class="top-nav-label">Notifications</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'settings' %}" class="top-nav-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
+                        <span class="top-nav-icon">⚙️</span>
+                        <span class="top-nav-label">Settings</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'logout' %}" class="top-nav-link">
+                        <span class="top-nav-icon">🚪</span>
+                        <span class="top-nav-label">Log Out</span>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    <!-- Mobile fallback: persistent drawer button -->
+    <button class="floating-drawer-toggle" id="floatingDrawerToggle" type="button" aria-label="Open navigation menu">&#9776;</button>
+
+    <!-- Top Drawer: full list of nav items (hidden until opened) -->
+    <div class="top-drawer-overlay" id="topDrawerOverlay"></div>
+    <div class="top-drawer" id="topDrawer" aria-hidden="true">
+        <div class="top-drawer-inner">
+            <!-- Close button inside drawer -->
+            <button class="drawer-close" id="drawerClose" aria-label="Close navigation">✕</button>
+            <ul class="top-drawer-menu">
+                {% if user.is_staff %}
+                    <li><a href="{% url 'admin_dashboard' %}"><span class="icon">📊</span><span>Dashboard</span></a></li>
+                    <li><a href="{% url 'manage_leases' %}"><span class="icon">📋</span><span>Leases</span></a></li>
+                    <li><a href="{% url 'manage_apartments' %}"><span class="icon">🏢</span><span>Apartments</span></a></li>
+                    <li><a href="{% url 'admin_calendar' %}"><span class="icon">📅</span><span>Calendar</span></a></li>
+                    <li><a href="{% url 'manage_tenants' %}"><span class="icon">👥</span><span>Tenants</span></a></li>
+                    <li><a href="{% url 'staff_maintenance' %}"><span class="icon">🔧</span><span>Maintenance</span></a></li>
+                    <li><a href="{% url 'settings' %}"><span class="icon">⚙️</span><span>Settings</span></a></li>
+                    <li><a href="{% url 'logout' %}"><span class="icon">🚪</span><span>Log Out</span></a></li>
+                {% else %}
+                    <li><a href="{% url 'dashboard' %}"><span class="icon">📊</span><span>Dashboard</span></a></li>
+                    <li><a href="{% url 'my_leases' %}"><span class="icon">🏠</span><span>Leases</span></a></li>
+                    <li><a href="{% url 'payments' %}"><span class="icon">💳</span><span>Payments</span></a></li>
+                    <li><a href="{% url 'tenant_calendar' %}"><span class="icon">📅</span><span>Calendar</span></a></li>
+                    <li><a href="{% url 'maintenance' %}"><span class="icon">🔧</span><span>Maintenance</span></a></li>
+                    <li><a href="{% url 'notifications' %}"><span class="icon">🔔</span><span>Notifications</span></a></li>
+                    <li><a href="{% url 'settings' %}"><span class="icon">⚙️</span><span>Settings</span></a></li>
+                    <li><a href="{% url 'logout' %}"><span class="icon">🚪</span><span>Log Out</span></a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <div class="sidebar-logo-icon">🏨</div>
+            <div class="sidebar-logo-text">
+                <h2>Casa de Liberty</h2>
+                <p>{% if user.is_staff %}Admin Panel{% else %}Tenant Portal{% endif %}</p>
+            </div>
+        </div>
+        
+        <ul class="sidebar-menu">
+            {% if user.is_staff %}
+            <!-- ================= ADMIN MENU ================= -->
+            <li>
+                <a href="{% url 'admin_dashboard' %}"
+                   class="sidebar-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+                    <span>📊</span> Dashboard
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'manage_leases' %}"
+                   class="sidebar-link {% if request.resolver_match.url_name == 'manage_leases' %}active{% endif %}">
+                    <span>📋</span> Leases
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'manage_apartments' %}"
+                   class="sidebar-link {% if request.resolver_match.url_name == 'manage_apartments' %}active{% endif %}">
+                    <span>🏢</span> Apartments
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'admin_calendar' %}"
+                   class="sidebar-link {% if request.resolver_match.url_name == 'admin_calendar' %}active{% endif %}">
+                    <span>📅</span> Master Calendar
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'manage_tenants' %}"
+                   class="sidebar-link {% if request.resolver_match.url_name == 'manage_tenants' %}active{% endif %}">
+                    <span>👥</span> Tenants
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'staff_maintenance' %}"
+                   class="sidebar-link {% if request.resolver_match.url_name == 'staff_maintenance' %}active{% endif %}">
+                    <span>🔧</span> Maintenance
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'settings' %}"
+                   class="sidebar-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
+                    <span>⚙️</span> Settings
+                </a>
+            </li>
+
+            {% else %}
+            <!-- ================= TENANT MENU ================= -->
+            <li>
+                <a href="{% url 'dashboard' %}"
+                   class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <span>📊</span> Dashboard
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'my_leases' %}"
+                   class="sidebar-link {% if request.resolver_match.url_name == 'my_leases' %}active{% endif %}">
+                    <span>🏠</span> My Leases
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'payments' %}"
+                   class="sidebar-link {% if request.resolver_match.url_name == 'payments' %}active{% endif %}">
+                    <span>💳</span> Payments
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'maintenance' %}"
+                   class="sidebar-link {% if request.resolver_match.url_name == 'maintenance' %}active{% endif %}">
+                    <span>🔧</span> Maintenance
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'notifications' %}"
+                   class="sidebar-link {% if request.resolver_match.url_name == 'notifications' %}active{% endif %}">
+                    <span>🔔</span> Notifications
+                    <div class="notification-indicator" id="notificationDot"></div>
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'tenant_calendar' %}"
+                   class="sidebar-link {% if request.resolver_match.url_name == 'tenant_calendar' %}active{% endif %}">
+                    <span>📅</span> Calendar
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'settings' %}"
+                   class="sidebar-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
+                    <span>⚙️</span> Settings
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+        <!-- Sidebar Footer -->
+        <div class="sidebar-footer">
+            <!-- User Info - Now Clickable -->
+            <a href="{% url 'settings' %}" style="text-decoration: none; color: inherit;">
+                <div class="sidebar-user" style="cursor: pointer; transition: all 0.3s ease; border-radius: 8px; padding: 8px; margin: -8px;">
+                    <div class="sidebar-user-avatar">
+                        {{ request.user.username.0|upper }}
+                    </div>
+                    <div class="sidebar-user-info">
+                        <p style="margin: 0;">{{ request.user.username }}</p>
+                        <span style="display: block; font-size: 12px;">{{ request.user.email|default:"user@email.com" }}</span>
+                    </div>
+                </div>
+            </a>
+
+            <style>
+                a[href*="settings"] .sidebar-user:hover {
+                    background: rgba(255, 255, 255, 0.1);
+                }
+                
+                html.dark-mode a[href*="settings"] .sidebar-user:hover {
+                    background: rgba(255, 255, 255, 0.05);
+                }
+            </style>
+
+            <!-- Divider -->
+            <div style="height: 1px; background: #334155; margin: 16px 0;"></div>
+
+            <!-- Dark Mode Toggle -->
+            <div class="dark-mode-toggle-footer">
+                <div class="sidebar-theme-toggle">
+                    <label class="sidebar-theme-toggle-label" for="darkModeToggle">
+                        <input type="checkbox" id="darkModeToggle" class="sidebar-theme-toggle-input">
+                        <span class="sidebar-theme-toggle-slider" aria-hidden="true"></span>
+                        <span id="sidebarThemeModeLabel" class="sidebar-theme-toggle-text" data-theme-text>Dark</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Desktop logout link (also available in header nav on mobile) -->
+            <div style="margin-top: 12px;">
+                <a href="{% url 'logout' %}" class="sidebar-logout" style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;text-decoration:none;color:#f3f4f6;">
+                    <span style="font-size:18px;">🚪</span>
+                    <span style="font-weight:600;">Log Out</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Messages -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}" style="margin-bottom: 20px;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <script>
+        // Dark mode state and toggle synchronization is handled by global ThemeManager (theme.js).
+        // Ensure the page toggle and sidebar label reflect current theme after the DOM is ready.
+        function updateSidebarThemeModeLabel() {
+            const label = document.getElementById('sidebarThemeModeLabel');
+            if (!label) return;
+            const isDark = document.documentElement.classList.contains('dark-mode');
+            label.textContent = isDark ? 'Dark' : 'Light';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.ThemeManager) {
+                const theme = window.ThemeManager.get();
+                window.ThemeManager.updateToggles(theme);
+                updateSidebarThemeModeLabel();
+            } else {
+                updateSidebarThemeModeLabel();
+            }
+
+            const themeToggle = document.getElementById('darkModeToggle');
+            if (themeToggle) {
+                themeToggle.addEventListener('change', function() {
+                    // ThemeManager will apply the class; defer label read to next frame.
+                    requestAnimationFrame(updateSidebarThemeModeLabel);
+                });
+            }
+        });
+
+        // Keep sidebar label in sync when theme changes on this page.
+        window.addEventListener('casa:theme-changed', function() {
+            updateSidebarThemeModeLabel();
+        });
+
+        // ====================== NOTIFICATION INDICATORS ======================
+        // Function to update notification indicator
+        async function updateNotificationIndicator() {
+            try {
+                const notificationDot = document.getElementById('notificationDot');
+                const response = await fetch('/api/notification-count/');
+                const data = await response.json();
+                if (notificationDot) {
+                    if (data.count > 0) {
+                        notificationDot.classList.add('show');
+                    } else {
+                        notificationDot.classList.remove('show');
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching notification count:', error);
+            }
+        }
+
+        // Function to update calendar indicator
+        async function updateCalendarIndicator() {
+            try {
+                const calendarDot = document.getElementById('calendarDot');
+                const response = await fetch('/api/due-dates-count/');
+                const data = await response.json();
+                if (calendarDot) {
+                    if (data.count > 0) {
+                        calendarDot.classList.add('show');
+                    } else {
+                        calendarDot.classList.remove('show');
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching due dates count:', error);
+            }
+        }
+
+        // Initialize indicators on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateNotificationIndicator();
+            updateCalendarIndicator();
+
+            // Refresh every 30 seconds
+            setInterval(function() {
+                updateNotificationIndicator();
+                updateCalendarIndicator();
+            }, 30000);
+        });
+
+        // ====================== PAGE TRANSITIONS ======================
+        // Add smooth page transitions when navigating between features
+        document.addEventListener('DOMContentLoaded', function() {
+            const mainContent = document.querySelector('.main-content');
+            const sidebarLinks = document.querySelectorAll('.sidebar-link');
+            
+            // Add transition to all sidebar navigation links
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    // Skip external links and links that open in new tabs
+                    if (this.target === '_blank' || this.hasAttribute('onclick')) {
+                        return;
+                    }
+                    
+                    // Check if this is not the current page
+                    if (!this.classList.contains('active')) {
+                        e.preventDefault();
+                        
+                        // Add fade out animation to current content and child elements
+                        if (mainContent) {
+                            mainContent.classList.add('page-transition-out');
+                            
+                            // Add staggered fade out to child sections
+                            const sections = mainContent.querySelectorAll('.section, .admin-stats-grid, .two-column-layout');
+                            sections.forEach((section, index) => {
+                                section.style.animation = `pageTransitionOut 0.3s cubic-bezier(0.4, 0, 0.2, 1) ${index * 50}ms forwards`;
+                            });
+                        }
+                        
+                        // Navigate after animation completes
+                        setTimeout(() => {
+                            window.location.href = this.href;
+                        }, 350);
+                    }
+                });
+            });
+        });
+
+        // Add fade-in animation to elements on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const sections = document.querySelectorAll('.section, .admin-stat-card, .admin-stats-grid');
+            sections.forEach((section, index) => {
+                section.style.animation = `pageTransitionIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) ${index * 80}ms backwards`;
+            });
+        });
+
+        // ====================== MOBILE MENU TOGGLE ======================
+        // Handle mobile sidebar menu open/close
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            const sidebarLinks = document.querySelectorAll('.sidebar-link');
+
+            console.log('Mobile menu elements loaded:', { mobileMenuToggle, sidebar, sidebarOverlay });
+
+            // Toggle menu on button click
+            if (mobileMenuToggle && sidebar && sidebarOverlay) {
+                mobileMenuToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Menu button clicked');
+                    sidebar.classList.toggle('active');
+                    sidebarOverlay.classList.toggle('active');
+                    console.log('Sidebar active:', sidebar.classList.contains('active'));
+                });
+            }
+
+            // Close menu when overlay is clicked
+            if (sidebarOverlay) {
+                sidebarOverlay.addEventListener('click', function() {
+                    console.log('Overlay clicked - closing menu');
+                    sidebar.classList.remove('active');
+                    sidebarOverlay.classList.remove('active');
+                });
+            }
+
+            // Close menu when a sidebar link is clicked
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth <= 767) {
+                        sidebar.classList.remove('active');
+                        sidebarOverlay.classList.remove('active');
+                    }
+                });
+            });
+
+            // Close menu on window resize
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 767) {
+                    sidebar.classList.remove('active');
+                    sidebarOverlay.classList.remove('active');
+                }
+            });
+
+            // ====================== TOP DRAWER TOGGLE ======================
+            const drawerToggle = document.getElementById('drawerToggle');
+            const floatingDrawerToggle = document.getElementById('floatingDrawerToggle');
+            const topDrawer = document.getElementById('topDrawer');
+            const topDrawerOverlay = document.getElementById('topDrawerOverlay');
+
+            if (topDrawer && topDrawerOverlay) {
+                function closeDrawer() {
+                    topDrawer.classList.remove('open');
+                    topDrawer.setAttribute('aria-hidden', 'true');
+                    topDrawerOverlay.classList.remove('open');
+                }
+
+                function openDrawer() {
+                    topDrawer.classList.add('open');
+                    topDrawer.setAttribute('aria-hidden', 'false');
+                    topDrawerOverlay.classList.add('open');
+                }
+
+                [drawerToggle, floatingDrawerToggle].forEach(function(toggleBtn) {
+                    if (!toggleBtn) return;
+                    toggleBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const isOpen = topDrawer.classList.contains('open');
+                        if (isOpen) closeDrawer(); else openDrawer();
+                    });
+                });
+
+                // Close drawer when overlay is clicked
+                topDrawerOverlay.addEventListener('click', function() {
+                    closeDrawer();
+                });
+
+                // Close drawer when close button clicked
+                const drawerCloseBtn = document.getElementById('drawerClose');
+                if (drawerCloseBtn) {
+                    drawerCloseBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        closeDrawer();
+                    });
+                }
+            }
+        });
+    </script>
+    <script src="{% static 'js/interactive.js' %}"></script>
+    <script src="{% static 'js/responsive.js' %}"></script>
+</body>
+</html>

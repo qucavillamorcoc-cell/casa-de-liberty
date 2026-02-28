@@ -1,0 +1,582 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Available Apartments - Casa de Liberty</title>
+    <!-- Global Theme Manager - Load early to prevent theme flashing -->
+    <script src="{% static 'js/theme.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        html.dark-mode {
+            --bg-primary: #111827;
+            --text-primary: #f3f4f6;
+            --text-secondary: #d1d5db;
+            --border-color: #4b5563;
+        }
+        
+        .dark-mode-toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        html.dark-mode .dark-mode-toggle-container {
+            background: #1f2937;
+            border-color: #4b5563;
+        }
+        
+        .dark-mode-toggle-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #64748b;
+        }
+        
+        html.dark-mode .dark-mode-toggle-label {
+            color: #d1d5db;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: all 0.3s ease;
+            border-radius: 24px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: all 0.3s ease;
+            border-radius: 50%;
+        }
+        
+        .toggle-switch input:checked + .toggle-slider {
+            background-color: #667eea;
+        }
+        
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
+        
+        body {
+            background: #f1f5f9;
+        }
+        
+        html.dark-mode body {
+            background: #0f1419;
+        }
+        
+        /* Navigation */
+        nav, [role="navigation"] {
+            background: white;
+            border-bottom-color: #e2e8f0;
+        }
+        
+        html.dark-mode nav,
+        html.dark-mode [role="navigation"] {
+            background: #1f2937;
+            border-bottom-color: #4b5563;
+        }
+        
+        /* Text colors */
+        html.dark-mode h1,
+        html.dark-mode h2,
+        html.dark-mode h3,
+        html.dark-mode p {
+            color: #f3f4f6;
+        }
+        
+        /* Card backgrounds */
+        html.dark-mode div[style*="background: white"] {
+            background: #1f2937 !important;
+            border-color: #4b5563 !important;
+        }
+        
+        /* Photo Carousel Styles */
+        .apartment-photo-carousel {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 64px;
+            overflow: hidden;
+        }
+        
+        .carousel-items-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .carousel-photo-item {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transform: translateX(100%) scale(0.95);
+            transition: none;
+        }
+        
+        .carousel-photo-item.active {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .carousel-photo-item.sliding-out {
+            opacity: 0;
+            transform: translateX(-100%) scale(0.95);
+            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .carousel-photo-item.sliding-in {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+            animation: slideInFromRight 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        
+        .carousel-photo-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .carousel-controls-bar {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            display: flex;
+            gap: 8px;
+            z-index: 10;
+        }
+        
+        .photo-counter-badge {
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            min-width: 45px;
+            text-align: center;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .photo-counter-text {
+            display: inline-block;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .carousel-next-btn {
+            background-color: #667eea;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+        }
+        
+        .carousel-next-btn:hover {
+            background-color: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.6);
+        }
+        
+        .carousel-next-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(102, 126, 234, 0.4);
+        }
+        
+        .carousel-next-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .carousel-prev-btn {
+            background-color: #667eea;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+        }
+        
+        .carousel-prev-btn:hover {
+            background-color: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.6);
+        }
+        
+        .carousel-prev-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(102, 126, 234, 0.4);
+        }
+        
+        .carousel-prev-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body style="background: var(--bg);">
+
+<!-- Top Navigation -->
+<div style="background: var(--card-bg); border-bottom: 1px solid var(--border-color); padding: 16px 40px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="width: 40px; height: 40px; background: #f59e0b; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;">🏠</div>
+        <div>
+            <h2 style="margin: 0; font-size: 18px; font-weight: 700; color: var(--text);">Casa de Liberty</h2>
+            <p style="margin: 0; font-size: 12px; color: var(--muted);">Premium Living Spaces</p>
+        </div>
+    </div>
+    <div style="display: flex; gap: 12px; align-items: center;">
+        <a href="{% url 'home' %}" class="btn btn-primary" style="padding: 10px 20px;">← Back to Home</a>
+        {% if user.is_authenticated %}
+            <a href="{% url 'dashboard' %}" class="btn btn-primary" style="padding: 10px 20px;">Go to Dashboard</a>
+        {% else %}
+            <a href="{% url 'login' %}" class="btn btn-primary" style="padding: 10px 20px;">Log In</a>
+            <a href="{% url 'register' %}" class="btn btn-primary" style="padding: 10px 20px;">Sign Up</a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Main Content -->
+<div style="max-width: 1400px; margin: 0 auto; padding: 40px;">
+    
+    <!-- Page Header -->
+    <div style="margin-bottom: 30px;">
+        <h1 style="font-size: 32px; font-weight: 700; color: #ffffff; margin: 0 0 8px 0;">Available Apartments</h1>
+        <p style="color: #d1d5db; font-size: 16px; margin: 0;">Browse our selection of premium apartments for long-term leases</p>
+    </div>
+
+    <!-- Apartments Grid -->
+    {% if apartments %}
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 24px;">
+        {% for apartment in apartments %}
+        <div style="background: var(--card-bg); border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); transition: all 0.3s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+            <!-- Apartment Photo Carousel -->
+            {% if apartment.photos.count %}
+            <div class="apartment-photo-carousel">
+                <div class="carousel-items-wrapper" id="carousel-{{ apartment.id }}">
+                    {% for photo in apartment.photos.all %}
+                        {% if photo.display_url %}
+                        <div class="carousel-photo-item {% if forloop.first %}active{% endif %}" data-index="{{ forloop.counter0 }}" data-apt-id="{{ apartment.id }}">
+                            <img src="{{ photo.display_url }}" alt="{% if photo.caption %}{{ photo.caption }}{% else %}Apartment {{ apartment.unit_number }} - Photo {{ forloop.counter }}{% endif %}" onerror="this.onerror=null; this.parentElement.style.background='linear-gradient(135deg, #667eea 0%, #764ba2 100%)'; this.style.display='none';">
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="carousel-controls-bar">
+                    <div class="photo-counter-badge"><span class="photo-counter-text" data-apt-id="{{ apartment.id }}">1</span>/<span class="photo-total-text" data-apt-id="{{ apartment.id }}">{{ apartment.photos.count }}</span></div>
+                    <button class="carousel-prev-btn" onclick="prevApartmentPhoto({{ apartment.id }})" type="button">←</button>
+                    <button class="carousel-next-btn" onclick="nextApartmentPhoto({{ apartment.id }})" type="button">→</button>
+                </div>
+            </div>
+            {% else %}
+            <div class="apartment-photo-carousel">🏠</div>
+            {% endif %}
+            
+            <!-- Apartment Content -->
+            <div style="padding: 24px;">
+                <!-- Apartment Header -->
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                    <div>
+                        <h3 style="font-size: 20px; font-weight: 600; color: #1e293b; margin: 0 0 4px 0;">Unit {{ apartment.unit_number }}</h3>
+                        <p style="font-size: 13px; color: #64748b; margin: 0;">{{ apartment.get_apartment_type_display }}</p>
+                    </div>
+                    <span style="display: inline-block; padding: 6px 12px; background: #d1fae5; color: #065f46; border-radius: 6px; font-size: 12px; font-weight: 600;">Available</span>
+                </div>
+                
+                <!-- Price -->
+                <div style="margin: 16px 0;">
+                    <span style="font-size: 28px; font-weight: 700; color: #3b82f6;">₱{{ apartment.monthly_rent }}</span>
+                    <span style="font-size: 14px; color: #64748b;">/month</span>
+                </div>
+                
+                <!-- Apartment Details -->
+                <div style="padding: 12px 0; margin: 16px 0; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9;">
+                    <div style="display: flex; align-items: center; gap: 8px; color: #64748b; font-size: 14px;">
+                        <span>👥</span>
+                        <span>Up to {{ apartment.max_occupants }} occupants</span>
+                    </div>
+                </div>
+                
+                <!-- Description -->
+                <p style="font-size: 14px; color: #475569; line-height: 1.6; margin: 0 0 12px 0;">{{ apartment.description }}</p>
+                
+                <!-- Amenities -->
+                <div style="background: #f8fafc; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                    <p style="font-size: 12px; color: #64748b; margin: 0 0 4px 0; font-weight: 600;">AMENITIES</p>
+                    <p style="font-size: 13px; color: #475569; margin: 0;">{{ apartment.amenities }}</p>
+                </div>
+                
+                <!-- Lease Button -->
+                {% if user.is_authenticated %}
+                    <a href="{% url 'lease_apartment' apartment.id %}{% if move_in %}?move_in={{ move_in }}{% endif %}" style="text-decoration: none;">
+                        <button class="btn btn-primary" style="width: 100%; padding: 16px 20px; font-size: 16px; font-weight: 600; border-radius: 10px; margin-top: 12px;">Lease This Apartment</button>
+                    </a>
+                {% else %}
+                    <a href="{% url 'login' %}?next={% url 'lease_apartment' apartment.id %}" style="text-decoration: none;">
+                        <button class="btn btn-primary" style="width: 100%; padding: 16px 20px; font-size: 16px; font-weight: 600; border-radius: 10px; margin-top: 12px;">Log In to Lease</button>
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="background: white; border-radius: 12px; padding: 80px 20px; border: 1px solid #e2e8f0; text-align: center;">
+        <div style="font-size: 64px; margin-bottom: 16px;">🏠</div>
+        <h3 style="font-size: 20px; font-weight: 600; color: #1e293b; margin: 0 0 8px 0;">
+            {% if apartments_found %}No Apartments Available{% else %}No Apartments Found{% endif %}
+        </h3>
+        <p style="color: #64748b; margin: 0;">
+            {% if apartments_found %}Please try a different move-in date{% else %}Check back later for available apartments{% endif %}
+        </p>
+    </div>
+    {% endif %}
+
+</div>
+
+<script>
+    // Date validation
+    const today = new Date().toISOString().split('T')[0];
+    const moveInInput = document.querySelector('input[name="move_in"]');
+    
+    if (moveInInput) moveInInput.min = today;
+
+    // Page Transition Animations
+    document.addEventListener('DOMContentLoaded', function() {
+        const apartmentsContainer = document.querySelector('.apartments-grid') || document.querySelector('main') || document.body;
+        const apartmentCards = document.querySelectorAll('.apartment-card');
+        
+        if (apartmentsContainer) apartmentsContainer.style.animation = 'pageTransitionIn 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+        
+        apartmentCards.forEach((card, index) => {
+            card.style.animation = `pageTransitionIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) ${100 + index * 80}ms backwards`;
+        });
+    });
+</script>
+
+<style>
+    @keyframes pageTransitionIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes pageTransitionOut {
+        from {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        to {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(20px) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+        }
+    }
+
+    @keyframes slideInFromRight {
+        from {
+            opacity: 0;
+            transform: translateX(100%) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+        }
+    }
+
+    @keyframes slideOutToLeft {
+        from {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+        }
+        to {
+            opacity: 0;
+            transform: translateX(-100%) scale(0.95);
+        }
+    }
+
+    @keyframes slideInFromLeft {
+        from {
+            opacity: 0;
+            transform: translateX(-100%) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+        }
+    }
+
+    @keyframes slideOutToRight {
+        from {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+        }
+        to {
+            opacity: 0;
+            transform: translateX(100%) scale(0.95);
+        }
+    }
+
+    .carousel-photo-item.sliding {
+        animation: slideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+</style>
+
+<script>
+    // Carousel state for each apartment
+    const carouselIndex = {};
+    
+    function nextApartmentPhoto(apartmentId) {
+        // Initialize carousel index if not exists
+        if (!carouselIndex[apartmentId]) {
+            carouselIndex[apartmentId] = 0;
+        }
+        
+        // Get all carousel items for this apartment
+        const carousel = document.getElementById(`carousel-${apartmentId}`);
+        const items = carousel.querySelectorAll('.carousel-photo-item');
+        const totalPhotos = items.length;
+        
+        if (totalPhotos === 0) return;
+        
+        // Animate current item sliding out to the left
+        const currentItem = items[carouselIndex[apartmentId]];
+        currentItem.classList.add('sliding-out');
+        currentItem.classList.remove('active');
+        
+        // Move to next photo
+        carouselIndex[apartmentId] = (carouselIndex[apartmentId] + 1) % totalPhotos;
+        
+        // Get next item and animate it sliding in from the right
+        const nextItem = items[carouselIndex[apartmentId]];
+        nextItem.classList.add('active');
+        nextItem.classList.add('sliding-in');
+        
+        // Clean up animation classes after transition completes
+        setTimeout(() => {
+            currentItem.classList.remove('sliding-out');
+            nextItem.classList.remove('sliding-in');
+        }, 600);
+        
+        // Update counter with animation
+        const counterText = document.querySelector(`.photo-counter-text[data-apt-id="${apartmentId}"]`);
+        if (counterText) {
+            counterText.style.transform = 'scale(1.2)';
+            counterText.textContent = carouselIndex[apartmentId] + 1;
+            setTimeout(() => {
+                counterText.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+                counterText.style.transform = 'scale(1)';
+            }, 50);
+        }
+    }
+    
+    function prevApartmentPhoto(apartmentId) {
+        // Initialize carousel index if not exists
+        if (!carouselIndex[apartmentId]) {
+            carouselIndex[apartmentId] = 0;
+        }
+        
+        // Get all carousel items for this apartment
+        const carousel = document.getElementById(`carousel-${apartmentId}`);
+        const items = carousel.querySelectorAll('.carousel-photo-item');
+        const totalPhotos = items.length;
+        
+        if (totalPhotos === 0) return;
+        
+        // Animate current item sliding out to the right
+        const currentItem = items[carouselIndex[apartmentId]];
+        currentItem.classList.remove('active');
+        // Add a sliding-right class for backward animation
+        currentItem.style.animation = 'slideOutToRight 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards';
+        
+        // Move to previous photo
+        carouselIndex[apartmentId] = (carouselIndex[apartmentId] - 1 + totalPhotos) % totalPhotos;
+        
+        // Get previous item and animate it sliding in from the left
+        const prevItem = items[carouselIndex[apartmentId]];
+        prevItem.classList.add('active');
+        // Add animation for sliding in from left
+        prevItem.style.animation = 'slideInFromLeft 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards';
+        
+        // Clean up animation styles after transition completes
+        setTimeout(() => {
+            currentItem.style.animation = 'none';
+            prevItem.style.animation = 'none';
+        }, 600);
+        
+        // Update counter with animation
+        const counterText = document.querySelector(`.photo-counter-text[data-apt-id="${apartmentId}"]`);
+        if (counterText) {
+            counterText.style.transform = 'scale(1.2)';
+            counterText.textContent = carouselIndex[apartmentId] + 1;
+            setTimeout(() => {
+                counterText.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+                counterText.style.transform = 'scale(1)';
+            }, 50);
+        }
+    }
+</script>
+
+</body>
+</html>

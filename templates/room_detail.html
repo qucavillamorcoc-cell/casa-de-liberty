@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Room {{ room.room_number }} Details</h2>
+
+<div style="text-align: left; margin-top: 30px;">
+    <h3>{{ room.get_room_type_display }}</h3>
+    
+    <p><strong>Price:</strong> ₱{{ room.price_per_night }} per night</p>
+    <p><strong>Capacity:</strong> Up to {{ room.capacity }} guests</p>
+    <p><strong>Status:</strong> {% if room.is_available %}Available{% else %}Booked{% endif %}</p>
+    
+    <h4 style="margin-top: 20px;">Description</h4>
+    <p>{{ room.description }}</p>
+    
+    <h4 style="margin-top: 20px;">Amenities</h4>
+    <p>{{ room.amenities }}</p>
+    
+    {% if room.is_available %}
+        <a href="{% url 'book_room' room.id %}">
+            <button style="margin-top: 20px;">Book This Room</button>
+        </a>
+    {% else %}
+        <button style="margin-top: 20px; background-color: #999;" disabled>Currently Unavailable</button>
+    {% endif %}
+</div>
+
+<br>
+<a href="{% url 'rooms' %}">← Back to Rooms</a>
+{% endblock %}
