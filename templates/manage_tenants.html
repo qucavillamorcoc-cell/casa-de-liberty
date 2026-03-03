@@ -169,6 +169,32 @@
         display: inline-block;
     }
 
+    .tenant-actions {
+        min-width: 130px;
+    }
+
+    .btn-delete-tenant {
+        width: 100%;
+        padding: 8px 10px;
+        border: none;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: #ffffff;
+        transition: all 0.2s ease;
+    }
+
+    .btn-delete-tenant:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 14px rgba(220, 38, 38, 0.35);
+    }
+
+    .btn-delete-tenant:active {
+        transform: translateY(0);
+    }
+
     .empty-state {
         text-align: center;
         padding: 60px 20px;
@@ -265,6 +291,10 @@
 
     html.dark-mode .contact-phone {
         color: #cbd5e1;
+    }
+
+    html.dark-mode .btn-delete-tenant {
+        background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
     }
 
     /* Mobile Responsive Styles - Card Based Design */
@@ -570,6 +600,7 @@
                     <th>Active Bookings</th>
                     <th>Remaining Balance</th>
                     <th>Nearest Due Date</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody id="tenantsTableBody">
@@ -634,6 +665,14 @@
                             <div style="color: #94a3b8; font-style: italic;">No due date</div>
                         {% endif %}
                     </td>
+
+                    <!-- Actions -->
+                    <td class="tenant-actions">
+                        <form method="post" action="{% url 'delete_tenant_account' tenant.user.id %}" onsubmit="return confirmDeleteTenant('{{ tenant.user.username|escapejs }}');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-delete-tenant">Delete Account</button>
+                        </form>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -668,6 +707,10 @@
 
     // Get today's date for comparison
     const today = new Date().toISOString().split('T')[0];
+
+    function confirmDeleteTenant(username) {
+        return confirm(`Delete tenant account @${username}? This cannot be undone.`);
+    }
 </script>
 
 {% endblock %}

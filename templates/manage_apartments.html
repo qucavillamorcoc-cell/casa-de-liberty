@@ -417,6 +417,12 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
+        cursor: zoom-in;
+        transition: transform 0.2s ease;
+    }
+
+    .carousel-item img:hover {
+        transform: scale(1.02);
     }
     
     .carousel-delete-btn {
@@ -524,6 +530,133 @@
             transform: translateX(100%) scale(0.95);
         }
     }
+
+    /* Admin photo lightbox */
+    .admin-photo-lightbox {
+        position: fixed;
+        inset: 0;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        max-width: none !important;
+        margin: 0 !important;
+        z-index: 2200;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: rgba(0, 0, 0, 0.82);
+        backdrop-filter: blur(3px);
+    }
+
+    .admin-photo-lightbox.active {
+        display: flex;
+    }
+
+    /* Override dashboard shell width constraints for fixed fullscreen overlays */
+    body.portal-shell .main-content > .admin-photo-lightbox {
+        width: 100vw !important;
+        max-width: none !important;
+        margin: 0 !important;
+    }
+
+    .admin-photo-lightbox-content {
+        position: relative;
+        max-width: min(1150px, 96vw);
+        max-height: 92vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin: 0 auto;
+    }
+
+    .admin-photo-lightbox-image {
+        max-width: 100%;
+        max-height: 84vh;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        background: #0f172a;
+        object-fit: contain;
+    }
+
+    .admin-photo-lightbox-caption {
+        margin: 0;
+        color: #e2e8f0;
+        font-size: 14px;
+        text-align: center;
+    }
+
+    .admin-photo-lightbox-close {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        width: 36px;
+        height: 36px;
+        border: none;
+        border-radius: 999px;
+        cursor: pointer;
+        color: #fff;
+        background: #ef4444;
+        font-size: 20px;
+        line-height: 1;
+        font-weight: 700;
+        box-shadow: 0 6px 20px rgba(239, 68, 68, 0.45);
+    }
+
+    .admin-photo-lightbox-close:hover {
+        background: #dc2626;
+    }
+
+    .admin-photo-lightbox-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 42px;
+        height: 42px;
+        border: none;
+        border-radius: 999px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: 700;
+        color: #fff;
+        background: rgba(15, 23, 42, 0.76);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+        user-select: none;
+    }
+
+    .admin-photo-lightbox-nav:hover {
+        background: rgba(30, 41, 59, 0.92);
+    }
+
+    .admin-photo-lightbox-prev {
+        left: -56px;
+    }
+
+    .admin-photo-lightbox-next {
+        right: -56px;
+    }
+
+    .admin-photo-lightbox-nav[disabled] {
+        opacity: 0.45;
+        cursor: not-allowed;
+    }
+
+    @media (max-width: 768px) {
+        .admin-photo-lightbox-prev {
+            left: 8px;
+        }
+
+        .admin-photo-lightbox-next {
+            right: 8px;
+        }
+    }
 </style>
 
 <!-- Apartments Grid -->
@@ -594,7 +727,23 @@
             
             <!-- Action Buttons -->
             <div class="luxury-button-group full">
-                <button type="button" class="btn-luxury btn-luxury-info" onclick="openPhotoModal({{ apartment.id }}, '{{ apartment.unit_number }}')" style="width: 100%; margin-bottom: 8px;">
+                <button
+                    type="button"
+                    class="btn-luxury btn-luxury-edit"
+                    onclick="openEditApartmentModal(
+                        {{ apartment.id }},
+                        '{{ apartment.unit_number|escapejs }}',
+                        '{{ apartment.apartment_type|escapejs }}',
+                        '{{ apartment.monthly_rent }}',
+                        '{{ apartment.max_occupants }}',
+                        '{{ apartment.description|escapejs }}',
+                        '{{ apartment.amenities|default:''|escapejs }}'
+                    )"
+                    style="width: 100%; margin-bottom: 8px;"
+                >
+                    Edit Unit
+                </button>
+                <button type="button" class="btn-luxury btn-luxury-info" onclick="openPhotoModal({{ apartment.id }}, '{{ apartment.unit_number|escapejs }}')" style="width: 100%; margin-bottom: 8px;">
                     📸 Upload Photos
                 </button>
                 <form method="post" action="{% url 'toggle_apartment_availability' apartment.id %}" style="width: 100%; margin: 0;">
@@ -611,6 +760,16 @@
         </div>
     </div>
     {% endfor %}
+</div>
+
+<div id="adminPhotoLightbox" class="admin-photo-lightbox" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Enlarged apartment photo">
+    <div class="admin-photo-lightbox-content">
+        <button type="button" class="admin-photo-lightbox-close" aria-label="Close image">&times;</button>
+        <button type="button" id="adminPhotoLightboxPrev" class="admin-photo-lightbox-nav admin-photo-lightbox-prev" aria-label="Previous photo">&#8249;</button>
+        <button type="button" id="adminPhotoLightboxNext" class="admin-photo-lightbox-nav admin-photo-lightbox-next" aria-label="Next photo">&#8250;</button>
+        <img id="adminPhotoLightboxImage" class="admin-photo-lightbox-image" src="" alt="">
+        <p id="adminPhotoLightboxCaption" class="admin-photo-lightbox-caption"></p>
+    </div>
 </div>
 
 {% if not apartments %}
@@ -668,6 +827,64 @@
     </div>
 </div>
 
+<!-- Edit Apartment Modal -->
+<div id="editApartmentModal" class="modal" style="display: none;">
+    <div class="modal-content modal-content-edit">
+        <div class="modal-header">
+            <h2>Edit Apartment Unit</h2>
+            <button type="button" class="modal-close" onclick="closeEditApartmentModal()">&times;</button>
+        </div>
+
+        <form id="editApartmentForm" method="post" action="{% url 'update_apartment' 0 %}">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div class="edit-form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Unit Number</label>
+                        <input type="text" id="editUnitNumber" name="unit_number" required class="form-input" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Apartment Type</label>
+                        <select id="editApartmentType" name="apartment_type" required class="form-select">
+                            <option value="studio">Studio</option>
+                            <option value="one_bedroom">One Bedroom</option>
+                            <option value="two_bedroom">Two Bedroom</option>
+                            <option value="three_bedroom">Three Bedroom</option>
+                            <option value="four_bedroom">Four Bedroom</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Monthly Rent (PHP)</label>
+                        <input type="number" id="editMonthlyRent" name="monthly_rent" step="0.01" min="0.01" required class="form-input" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Max Occupants</label>
+                        <input type="number" id="editMaxOccupants" name="max_occupants" min="1" required class="form-input" />
+                    </div>
+
+                    <div class="form-group full">
+                        <label class="form-label">Description</label>
+                        <textarea id="editDescription" name="description" required class="form-textarea" rows="4"></textarea>
+                    </div>
+
+                    <div class="form-group full">
+                        <label class="form-label">Amenities (comma separated)</label>
+                        <input type="text" id="editAmenities" name="amenities" class="form-input" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="modal-btn modal-btn-secondary" onclick="closeEditApartmentModal()">Cancel</button>
+                <button type="submit" class="modal-btn modal-btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- Modal Styles -->
 <style>
     .modal {
@@ -680,7 +897,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        z-index: 1000;
+        z-index: 2300;
         animation: fadeIn 0.3s ease-in-out;
     }
     
@@ -701,6 +918,26 @@
         flex-direction: column;
         max-height: 90vh;
         overflow-y: auto;
+    }
+
+    .modal-content-edit {
+        max-width: 760px;
+    }
+
+    .edit-form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    .edit-form-grid .form-group.full {
+        grid-column: 1 / -1;
+    }
+
+    @media (max-width: 768px) {
+        .edit-form-grid {
+            grid-template-columns: 1fr;
+        }
     }
     
     @keyframes slideUp {
@@ -911,11 +1148,58 @@
     .btn-luxury-info:active {
         transform: translateY(0);
     }
+
+    .btn-luxury-edit {
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        color: white;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn-luxury-edit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.45);
+    }
+
+    .btn-luxury-edit:active {
+        transform: translateY(0);
+    }
 </style>
 
 <!-- Photo Upload Scripts -->
 <script>
     let selectedFiles = new Map();
+    const editApartmentUrlTemplate = "{% url 'update_apartment' 0 %}";
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const editModal = document.getElementById('editApartmentModal');
+        if (editModal && editModal.parentElement !== document.body) {
+            document.body.appendChild(editModal);
+        }
+
+        const photoModal = document.getElementById('photoModal');
+        if (photoModal && photoModal.parentElement !== document.body) {
+            document.body.appendChild(photoModal);
+        }
+    });
+
+    function buildEditApartmentUrl(apartmentId) {
+        return editApartmentUrlTemplate.replace('/0/', `/${apartmentId}/`);
+    }
+
+    function openEditApartmentModal(apartmentId, unitNumber, apartmentType, monthlyRent, maxOccupants, description, amenities) {
+        document.getElementById('editApartmentForm').action = buildEditApartmentUrl(apartmentId);
+        document.getElementById('editUnitNumber').value = unitNumber || '';
+        document.getElementById('editApartmentType').value = apartmentType || 'studio';
+        document.getElementById('editMonthlyRent').value = monthlyRent || '';
+        document.getElementById('editMaxOccupants').value = maxOccupants || '';
+        document.getElementById('editDescription').value = description || '';
+        document.getElementById('editAmenities').value = amenities || '';
+        document.getElementById('editApartmentModal').style.display = 'flex';
+    }
+
+    function closeEditApartmentModal() {
+        document.getElementById('editApartmentModal').style.display = 'none';
+    }
     
     function openPhotoModal(apartmentId, unitNumber) {
         document.getElementById('photoModal').style.display = 'flex';
@@ -1096,9 +1380,27 @@
             closePhotoModal();
         }
     });
+
+    document.getElementById('editApartmentModal').addEventListener('click', (e) => {
+        if (e.target.id === 'editApartmentModal') {
+            closeEditApartmentModal();
+        }
+    });
     
     // ================== Admin Carousel Navigation ==================
     const adminCarouselIndex = {};
+    const adminLightboxState = {
+        apartmentId: null,
+        currentIndex: 0,
+        items: []
+    };
+
+    function updateAdminCounter(apartmentId, index) {
+        const counterText = document.querySelector(`.carousel-counter-text[data-apt-id="${apartmentId}"]`);
+        if (counterText) {
+            counterText.textContent = index + 1;
+        }
+    }
     
     // Delete photo function
     async function deleteApartmentPhoto(photoId, apartmentId) {
@@ -1247,6 +1549,146 @@
             }, 50);
         }
     }
+
+    // ================== Admin Photo Lightbox ==================
+    function syncAdminCarousel(apartmentId, index) {
+        const carousel = document.getElementById(`carousel-${apartmentId}`);
+        if (!carousel) return;
+
+        const items = carousel.querySelectorAll('.carousel-item');
+        items.forEach(item => {
+            item.classList.remove('active', 'sliding-out', 'sliding-in');
+            item.style.animation = 'none';
+        });
+
+        if (items[index]) {
+            items[index].classList.add('active');
+        }
+
+        adminCarouselIndex[apartmentId] = index;
+        updateAdminCounter(apartmentId, index);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const lightbox = document.getElementById('adminPhotoLightbox');
+        // Mount lightbox at <body> level so it behaves like a true popup
+        // above the entire dashboard shell (not constrained by main-content).
+        if (lightbox && lightbox.parentElement !== document.body) {
+            document.body.appendChild(lightbox);
+        }
+        const lightboxImg = document.getElementById('adminPhotoLightboxImage');
+        const lightboxCaption = document.getElementById('adminPhotoLightboxCaption');
+        const lightboxCloseBtn = lightbox.querySelector('.admin-photo-lightbox-close');
+        const lightboxPrevBtn = document.getElementById('adminPhotoLightboxPrev');
+        const lightboxNextBtn = document.getElementById('adminPhotoLightboxNext');
+
+        function updateLightboxNavState() {
+            const canNavigate = adminLightboxState.items.length > 1;
+            lightboxPrevBtn.disabled = !canNavigate;
+            lightboxNextBtn.disabled = !canNavigate;
+            lightboxPrevBtn.style.display = canNavigate ? 'inline-flex' : 'none';
+            lightboxNextBtn.style.display = canNavigate ? 'inline-flex' : 'none';
+        }
+
+        function updateLightboxImage() {
+            if (!adminLightboxState.items.length) return;
+
+            const currentItem = adminLightboxState.items[adminLightboxState.currentIndex];
+            const currentImg = currentItem.querySelector('img');
+            const altText = currentImg.alt || 'Apartment photo';
+            const total = adminLightboxState.items.length;
+
+            lightboxImg.src = currentImg.currentSrc || currentImg.src;
+            lightboxImg.alt = altText;
+            lightboxCaption.textContent = `${adminLightboxState.currentIndex + 1}/${total} - ${altText}`;
+
+            syncAdminCarousel(adminLightboxState.apartmentId, adminLightboxState.currentIndex);
+        }
+
+        function openLightbox(apartmentId, startIndex) {
+            const carousel = document.getElementById(`carousel-${apartmentId}`);
+            if (!carousel) return;
+
+            const items = Array.from(carousel.querySelectorAll('.carousel-item'));
+            if (!items.length) return;
+
+            adminLightboxState.apartmentId = apartmentId;
+            adminLightboxState.items = items;
+            adminLightboxState.currentIndex = Math.max(0, Math.min(startIndex, items.length - 1));
+
+            updateLightboxImage();
+            updateLightboxNavState();
+            lightbox.classList.add('active');
+            lightbox.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            lightbox.classList.remove('active');
+            lightbox.setAttribute('aria-hidden', 'true');
+            lightboxImg.src = '';
+            lightboxCaption.textContent = '';
+            adminLightboxState.apartmentId = null;
+            adminLightboxState.currentIndex = 0;
+            adminLightboxState.items = [];
+            document.body.style.overflow = '';
+        }
+
+        function showNextInLightbox() {
+            if (!adminLightboxState.items.length) return;
+            adminLightboxState.currentIndex = (adminLightboxState.currentIndex + 1) % adminLightboxState.items.length;
+            updateLightboxImage();
+        }
+
+        function showPrevInLightbox() {
+            if (!adminLightboxState.items.length) return;
+            adminLightboxState.currentIndex = (adminLightboxState.currentIndex - 1 + adminLightboxState.items.length) % adminLightboxState.items.length;
+            updateLightboxImage();
+        }
+
+        document.querySelectorAll('.carousel-item img').forEach((photo) => {
+            photo.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                const item = photo.closest('.carousel-item');
+                if (!item) return;
+
+                const apartmentId = parseInt(item.getAttribute('data-apt-id'), 10);
+                const carousel = document.getElementById(`carousel-${apartmentId}`);
+                const items = carousel ? Array.from(carousel.querySelectorAll('.carousel-item')) : [];
+                const startIndex = Math.max(0, items.indexOf(item));
+                openLightbox(apartmentId, startIndex);
+            });
+        });
+
+        lightboxCloseBtn.addEventListener('click', closeLightbox);
+        lightboxNextBtn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            showNextInLightbox();
+        });
+        lightboxPrevBtn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            showPrevInLightbox();
+        });
+
+        lightbox.addEventListener('click', (event) => {
+            if (event.target === lightbox) {
+                closeLightbox();
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (!lightbox.classList.contains('active')) return;
+
+            if (event.key === 'Escape') {
+                closeLightbox();
+            } else if (event.key === 'ArrowRight') {
+                showNextInLightbox();
+            } else if (event.key === 'ArrowLeft') {
+                showPrevInLightbox();
+            }
+        });
+    });
     
     // ================== Drag & Drop on Carousel ==================
     // Enable drag-and-drop directly on apartment photo carousels

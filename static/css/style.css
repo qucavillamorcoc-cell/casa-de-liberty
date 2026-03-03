@@ -1514,6 +1514,18 @@ html.dark-mode .btn-danger {
     color: var(--text-primary);
 }
 
+/* Keep secondary buttons readable in dark mode */
+html.dark-mode .btn-secondary {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+html.dark-mode .btn-secondary:hover {
+    background: var(--bg-secondary);
+    border-color: var(--text-secondary);
+}
+
 html.dark-mode input[type="text"],
 html.dark-mode input[type="email"],
 html.dark-mode input[type="password"],

@@ -172,6 +172,12 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+            cursor: zoom-in;
+            transition: transform 0.2s ease;
+        }
+
+        .carousel-photo-item img:hover {
+            transform: scale(1.02);
         }
         
         .carousel-controls-bar {
@@ -257,6 +263,127 @@
         .carousel-prev-btn:disabled {
             background-color: #ccc;
             cursor: not-allowed;
+        }
+
+        /* Photo Lightbox */
+        .photo-lightbox {
+            position: fixed;
+            inset: 0;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            max-width: none !important;
+            margin: 0 !important;
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: rgba(0, 0, 0, 0.82);
+            backdrop-filter: blur(3px);
+        }
+
+        .photo-lightbox.active {
+            display: flex;
+        }
+
+        .photo-lightbox-content {
+            position: relative;
+            max-width: min(1100px, 96vw);
+            max-height: 92vh;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+        }
+
+        .photo-lightbox-image {
+            max-width: 100%;
+            max-height: 84vh;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            object-fit: contain;
+            background: #0f172a;
+        }
+
+        .photo-lightbox-caption {
+            margin: 0;
+            color: #e2e8f0;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .photo-lightbox-close {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 999px;
+            cursor: pointer;
+            background: #ef4444;
+            color: white;
+            font-size: 20px;
+            line-height: 1;
+            font-weight: 700;
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.45);
+        }
+
+        .photo-lightbox-close:hover {
+            background: #dc2626;
+        }
+
+        .photo-lightbox-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 42px;
+            height: 42px;
+            border: none;
+            border-radius: 999px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 700;
+            line-height: 1;
+            color: #ffffff;
+            background: rgba(15, 23, 42, 0.76);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+            user-select: none;
+        }
+
+        .photo-lightbox-nav:hover {
+            background: rgba(30, 41, 59, 0.92);
+        }
+
+        .photo-lightbox-prev {
+            left: -56px;
+        }
+
+        .photo-lightbox-next {
+            right: -56px;
+        }
+
+        .photo-lightbox-nav[disabled] {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 768px) {
+            .photo-lightbox-prev {
+                left: 8px;
+            }
+
+            .photo-lightbox-next {
+                right: 8px;
+            }
         }
     </style>
 </head>
@@ -378,6 +505,16 @@
     </div>
     {% endif %}
 
+</div>
+
+<div id="photoLightbox" class="photo-lightbox" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Enlarged apartment photo">
+    <div class="photo-lightbox-content">
+        <button type="button" class="photo-lightbox-close" aria-label="Close image">&times;</button>
+        <button type="button" id="photoLightboxPrev" class="photo-lightbox-nav photo-lightbox-prev" aria-label="Previous photo">&#8249;</button>
+        <button type="button" id="photoLightboxNext" class="photo-lightbox-nav photo-lightbox-next" aria-label="Next photo">&#8250;</button>
+        <img id="photoLightboxImage" class="photo-lightbox-image" src="" alt="">
+        <p id="photoLightboxCaption" class="photo-lightbox-caption"></p>
+    </div>
 </div>
 
 <script>
@@ -576,6 +713,152 @@
             }, 50);
         }
     }
+
+    // Click-to-enlarge apartment photos
+    document.addEventListener('DOMContentLoaded', function() {
+        const lightbox = document.getElementById('photoLightbox');
+        const lightboxImg = document.getElementById('photoLightboxImage');
+        const lightboxCaption = document.getElementById('photoLightboxCaption');
+        const lightboxCloseBtn = lightbox.querySelector('.photo-lightbox-close');
+        const lightboxPrevBtn = document.getElementById('photoLightboxPrev');
+        const lightboxNextBtn = document.getElementById('photoLightboxNext');
+
+        const lightboxState = {
+            apartmentId: null,
+            currentIndex: 0,
+            items: []
+        };
+
+        function setCounter(apartmentId, index) {
+            const counterText = document.querySelector(`.photo-counter-text[data-apt-id="${apartmentId}"]`);
+            if (counterText) {
+                counterText.textContent = index + 1;
+            }
+        }
+
+        function syncCardCarousel(apartmentId, index) {
+            const carousel = document.getElementById(`carousel-${apartmentId}`);
+            if (!carousel) return;
+
+            const items = carousel.querySelectorAll('.carousel-photo-item');
+            items.forEach(item => {
+                item.classList.remove('active', 'sliding-out', 'sliding-in');
+                item.style.animation = 'none';
+            });
+
+            if (items[index]) {
+                items[index].classList.add('active');
+            }
+
+            carouselIndex[apartmentId] = index;
+            setCounter(apartmentId, index);
+        }
+
+        function updateLightboxImage() {
+            if (!lightboxState.items.length) return;
+
+            const currentItem = lightboxState.items[lightboxState.currentIndex];
+            const currentImg = currentItem.querySelector('img');
+            const altText = currentImg.alt || 'Apartment photo';
+            const total = lightboxState.items.length;
+
+            lightboxImg.src = currentImg.currentSrc || currentImg.src;
+            lightboxImg.alt = altText;
+            lightboxCaption.textContent = `${lightboxState.currentIndex + 1}/${total} - ${altText}`;
+
+            syncCardCarousel(lightboxState.apartmentId, lightboxState.currentIndex);
+        }
+
+        function updateLightboxNavState() {
+            const canNavigate = lightboxState.items.length > 1;
+            lightboxPrevBtn.disabled = !canNavigate;
+            lightboxNextBtn.disabled = !canNavigate;
+            lightboxPrevBtn.style.display = canNavigate ? 'inline-flex' : 'none';
+            lightboxNextBtn.style.display = canNavigate ? 'inline-flex' : 'none';
+        }
+
+        function openLightbox(apartmentId, startIndex) {
+            const carousel = document.getElementById(`carousel-${apartmentId}`);
+            if (!carousel) return;
+
+            const items = Array.from(carousel.querySelectorAll('.carousel-photo-item'));
+            if (!items.length) return;
+
+            lightboxState.apartmentId = apartmentId;
+            lightboxState.items = items;
+            lightboxState.currentIndex = Math.max(0, Math.min(startIndex, items.length - 1));
+
+            updateLightboxImage();
+            updateLightboxNavState();
+            lightbox.classList.add('active');
+            lightbox.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function showNextInLightbox() {
+            if (!lightboxState.items.length) return;
+            lightboxState.currentIndex = (lightboxState.currentIndex + 1) % lightboxState.items.length;
+            updateLightboxImage();
+        }
+
+        function showPrevInLightbox() {
+            if (!lightboxState.items.length) return;
+            lightboxState.currentIndex = (lightboxState.currentIndex - 1 + lightboxState.items.length) % lightboxState.items.length;
+            updateLightboxImage();
+        }
+
+        function closeLightbox() {
+            lightbox.classList.remove('active');
+            lightbox.setAttribute('aria-hidden', 'true');
+            lightboxImg.src = '';
+            lightboxCaption.textContent = '';
+            document.body.style.overflow = '';
+            lightboxState.apartmentId = null;
+            lightboxState.currentIndex = 0;
+            lightboxState.items = [];
+        }
+
+        document.querySelectorAll('.carousel-photo-item img').forEach(function(photo) {
+            photo.addEventListener('click', function(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                const item = this.closest('.carousel-photo-item');
+                const apartmentId = parseInt(item.getAttribute('data-apt-id'), 10);
+                const index = parseInt(item.getAttribute('data-index'), 10) || 0;
+                openLightbox(apartmentId, index);
+            });
+        });
+
+        lightboxCloseBtn.addEventListener('click', closeLightbox);
+        lightboxNextBtn.addEventListener('click', function(event) {
+            event.stopPropagation();
+            showNextInLightbox();
+        });
+        lightboxPrevBtn.addEventListener('click', function(event) {
+            event.stopPropagation();
+            showPrevInLightbox();
+        });
+
+        lightbox.addEventListener('click', function(event) {
+            if (event.target === lightbox) {
+                closeLightbox();
+            }
+        });
+
+        document.addEventListener('keydown', function(event) {
+            if (!lightbox.classList.contains('active')) {
+                return;
+            }
+
+            if (event.key === 'Escape') {
+                closeLightbox();
+            } else if (event.key === 'ArrowRight') {
+                showNextInLightbox();
+            } else if (event.key === 'ArrowLeft') {
+                showPrevInLightbox();
+            }
+        });
+    });
 </script>
 
 </body>

@@ -68,7 +68,7 @@ class ChangePasswordViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Unable to send OTP email right now. Please try again.')
         self.assertNotContains(response, 'Enter OTP Code')
-        self.assertTrue(OTP.objects.filter(user=self.user, is_used=False).exists())
+        self.assertFalse(OTP.objects.filter(user=self.user, is_used=False).exists())
         mock_send_otp.assert_called_once()
 
     def test_request_otp_without_email_redirects_to_settings(self):
@@ -176,6 +176,16 @@ class PasswordResetViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Please fill in both password fields')
 
+    @patch('core.views.send_password_reset_link_email', return_value=False)
+    def test_password_reset_request_handles_email_send_failure(self, mock_send_email):
+        response = self.client.post(reverse('password_reset'), {
+            'username_or_email': 'reset-user',
+        }, secure=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Unable to send reset email right now. Please try again later.')
+        mock_send_email.assert_called_once()
+
 
 class RegisterViewTests(TestCase):
     def test_register_requires_email(self):
@@ -201,3 +211,25 @@ class RegisterViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Email is already registered')
         self.assertFalse(User.objects.filter(username='newuser').exists())
+
+    def test_register_rejects_invalid_email(self):
+        response = self.client.post(reverse('register'), {
+            'username': 'invalidmail',
+            'password': 'SomePass123!',
+            'email': 'not-an-email',
+        }, secure=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Please enter a valid email address')
+        self.assertFalse(User.objects.filter(username='invalidmail').exists())
+
+
+class LoginViewTests(TestCase):
+    def test_login_requires_both_fields(self):
+        response = self.client.post(reverse('login'), {
+            'username': '',
+            'password': '',
+        }, secure=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Please enter both username and password')

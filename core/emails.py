@@ -1,6 +1,59 @@
-from django.core.mail import send_mail
+import logging
+
 from django.conf import settings
+from django.core.mail import get_connection, send_mail
 from django.template.loader import render_to_string
+
+logger = logging.getLogger(__name__)
+
+
+def _is_smtp_backend():
+    backend = (getattr(settings, 'EMAIL_BACKEND', '') or '').lower()
+    return 'smtp' in backend
+
+
+def _email_backend_configured():
+    """Return True if email backend appears configured enough for OTP delivery."""
+    if not _is_smtp_backend():
+        # Console/file/locmem backends are valid in local development.
+        return True
+
+    host_user = (getattr(settings, 'EMAIL_HOST_USER', '') or '').strip()
+    host_password = (getattr(settings, 'EMAIL_HOST_PASSWORD', '') or '').strip()
+    placeholder_values = {'', 'your-email@gmail.com'}
+    if host_user in placeholder_values or not host_password:
+        return False
+    return True
+
+
+def _send_email(subject, message, recipients):
+    """Central email sender with timeout + config checks for safer OTP flows."""
+    if not recipients:
+        return False
+
+    if not _email_backend_configured():
+        logger.warning('Email backend not configured. Cannot send email to recipients=%s', recipients)
+        return False
+
+    timeout = int(getattr(settings, 'EMAIL_TIMEOUT', 10) or 10)
+    from_email = (getattr(settings, 'DEFAULT_FROM_EMAIL', '') or '').strip()
+    if not from_email or from_email == 'your-email@gmail.com':
+        from_email = (getattr(settings, 'EMAIL_HOST_USER', '') or '').strip()
+
+    try:
+        connection = get_connection(fail_silently=False, timeout=timeout)
+        send_mail(
+            subject,
+            message,
+            from_email,
+            recipients,
+            fail_silently=False,
+            connection=connection,
+        )
+        return True
+    except Exception:
+        logger.exception('Failed sending email. subject=%s recipients=%s', subject, recipients)
+        return False
 
 def send_lease_confirmation_email(lease):
     """Send email to tenant when admin approves their lease application
@@ -152,19 +205,10 @@ Best regards,
 Casa de Liberty Team
     """
     
-    try:
-        send_mail(
-            subject,
-            message,
-            settings.DEFAULT_FROM_EMAIL,
-            [user.email],
-            fail_silently=False,
-        )
-    except Exception as e:
-        print(f"Error sending OTP email: {e}")
+    if not getattr(user, 'email', ''):
         return False
-    
-    return True
+
+    return _send_email(subject, message, [user.email])
 
 def send_password_reset_otp_email(user, otp_code):
     """Send OTP to user's email for password reset verification
@@ -192,19 +236,35 @@ Best regards,
 Casa de Liberty Team
     """
     
-    try:
-        send_mail(
-            subject,
-            message,
-            settings.DEFAULT_FROM_EMAIL,
-            [user.email],
-            fail_silently=False,
-        )
-    except Exception as e:
-        print(f"Error sending password reset OTP email: {e}")
+    if not getattr(user, 'email', ''):
         return False
-    
-    return True
+
+    return _send_email(subject, message, [user.email])
+
+
+def send_password_reset_link_email(user, reset_link):
+    """Send password reset link email with robust error handling."""
+    if not getattr(user, 'email', ''):
+        return False
+
+    subject = 'Password Reset - Casa de Liberty'
+    message = f"""
+Hello {user.username},
+
+You requested to reset your password for Casa de Liberty.
+
+Click the link below to reset your password:
+{reset_link}
+
+If you didn't request this, please ignore this email.
+
+This link will expire in 24 hours.
+
+Best regards,
+Casa de Liberty Team
+    """
+
+    return _send_email(subject, message, [user.email])
 
 # Backwards compatibility aliases
 send_booking_confirmation_email = send_lease_confirmation_email

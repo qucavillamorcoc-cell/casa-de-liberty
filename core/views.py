@@ -19,7 +19,6 @@ from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.validators import validate_email
 # PDF Export (optional)
 try:
     from reportlab.lib.pagesizes import letter  # noqa
@@ -35,12 +34,22 @@ from .emails import (
     send_cancellation_email,
     send_admin_notification,
     send_otp_email,
+    send_password_reset_link_email,
+)
+from .forms import (
+    LoginForm,
+    RegisterForm,
+    PasswordResetRequestForm,
+    PasswordResetConfirmForm,
+    ChangePasswordRequestOTPForm,
+    ChangePasswordVerifyOTPForm,
 )
 from django.contrib.auth.tokens import default_token_generator
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.http import (
+    urlsafe_base64_encode,
+    urlsafe_base64_decode,
+)
 from django.utils.encoding import force_bytes, force_str
-from django.core.mail import send_mail
-from django.conf import settings
 from django.utils.dateparse import parse_date
 from django.utils import timezone
 import calendar
@@ -86,6 +95,16 @@ def _last_day_of_month(date_obj):
     """Return the last date of the date's month."""
     return date_obj.replace(day=calendar.monthrange(date_obj.year, date_obj.month)[1])
 
+
+def _first_form_error(form, fallback='Please check your input and try again.'):
+    """Return first form error message for user-facing feedback."""
+    if not form.errors:
+        return fallback
+    first_error_list = next(iter(form.errors.values()))
+    if isinstance(first_error_list, (list, tuple)) and first_error_list:
+        return str(first_error_list[0])
+    return str(first_error_list)
+
 def home(request):
     """Landing page - displays property info and call to action"""
     return render(request, 'home.html')
@@ -93,8 +112,13 @@ def home(request):
 def user_login(request):
     """Handle tenant/admin login - authenticates user and redirects to dashboard"""
     if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
+        form = LoginForm(request.POST)
+        if not form.is_valid():
+            messages.error(request, _first_form_error(form, 'Please enter both username and password.'))
+            return render(request, 'login.html')
+
+        username = form.cleaned_data['username']
+        password = form.cleaned_data['password']
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
@@ -107,36 +131,33 @@ def user_login(request):
 
 def register(request):
     if request.method == 'POST':
-        username = request.POST.get('username', '').strip()
-        password = request.POST.get('password', '')
-        email = request.POST.get('email', '').strip().lower()
-        contact_number = request.POST.get('contact_number', '').strip()
-
-        if not username or not password or not email:
-            messages.error(request, 'Username, email, and password are required.')
+        form = RegisterForm(request.POST)
+        if not form.is_valid():
+            messages.error(request, _first_form_error(form, 'Username, email, and password are required.'))
             return render(request, 'register.html')
+
+        username = form.cleaned_data['username']
+        password = form.cleaned_data['password']
+        email = form.cleaned_data['email']
+        contact_number = form.cleaned_data.get('contact_number', '')
 
         try:
-            validate_email(email)
-        except ValidationError:
-            messages.error(request, 'Please enter a valid email address.')
+            user = User.objects.create_user(username=username, password=password, email=email)
+        except Exception:
+            logger.exception('Failed creating user during registration. username=%s', username)
+            messages.error(request, 'Unable to create account right now. Please try again.')
             return render(request, 'register.html')
-
-        if User.objects.filter(username=username).exists():
-            messages.error(request, 'Username already exists')
-            return render(request, 'register.html')
-
-        if User.objects.filter(email__iexact=email).exists():
-            messages.error(request, 'Email is already registered. Please use another email.')
-            return render(request, 'register.html')
-
-        user = User.objects.create_user(username=username, password=password, email=email)
 
         # Create user profile with contact number
-        UserProfile.objects.create(
-            user=user,
-            contact_number=contact_number
-        )
+        try:
+            UserProfile.objects.create(
+                user=user,
+                contact_number=contact_number
+            )
+        except Exception:
+            logger.exception('Failed creating user profile for user_id=%s', user.id)
+            messages.error(request, 'Account was created but profile setup failed. Please contact support.')
+            return redirect('login')
         
         login(request, user)
         messages.success(request, 'Account created successfully!')
@@ -872,19 +893,43 @@ def manage_tenants(request):
             'email': tenant.email or 'Not set',
             'total_balance': total_balance,
             'nearest_due_date': nearest_due.due_date if nearest_due else None,
+            'active_bookings': active_leases,
             'active_leases': active_leases,
             'status': 'Active' if active_leases > 0 else 'Inactive'
         })
     
     return render(request, 'manage_tenants.html', {'tenant_data': tenant_data})
 
+
+@staff_member_required
+@require_http_methods(["POST"])
+def delete_tenant_account(request, user_id):
+    """Delete tenant account from admin panel."""
+    tenant = get_object_or_404(User, id=user_id, is_staff=False)
+
+    # Safety guard: never allow deleting the currently logged-in user.
+    if tenant.id == request.user.id:
+        messages.error(request, 'You cannot delete your own account from this page.')
+        return redirect('manage_tenants')
+
+    active_leases = Lease.objects.filter(tenant=tenant, status__in=['active', 'pending']).count()
+    if active_leases > 0:
+        messages.error(
+            request,
+            f'Cannot delete @{tenant.username}: tenant still has {active_leases} active/pending lease(s).'
+        )
+        return redirect('manage_tenants')
+
+    username = tenant.username
+    tenant.delete()
+    messages.success(request, f'Tenant account @{username} deleted successfully.')
+    return redirect('manage_tenants')
+
 # ============================================
 # APARTMENT & PROPERTY MANAGEMENT
 # ============================================
 
 # Custom view to handle apartment creation from the admin dashboard
-from django.core.exceptions import ValidationError
-
 @staff_member_required
 def add_apartment(request):
     """Admin creates new apartment unit in the system
@@ -1130,6 +1175,61 @@ def toggle_apartment_availability(request, apartment_id):
     messages.success(request, f'Apartment {apartment.unit_number} is now {status}')
     return redirect('manage_apartments')
 
+
+@staff_member_required
+def update_apartment(request, apartment_id):
+    """Update apartment details from admin manage apartments page."""
+    apartment = get_object_or_404(Apartment, id=apartment_id)
+
+    if request.method != 'POST':
+        return redirect('manage_apartments')
+
+    unit_number = (request.POST.get('unit_number') or '').strip()
+    apartment_type = (request.POST.get('apartment_type') or '').strip()
+    monthly_rent = (request.POST.get('monthly_rent') or '').strip()
+    max_occupants = (request.POST.get('max_occupants') or '').strip()
+    description = (request.POST.get('description') or '').strip()
+    amenities = (request.POST.get('amenities') or '').strip()
+
+    if not all([unit_number, apartment_type, monthly_rent, max_occupants, description]):
+        messages.error(request, 'Unit number, type, rent, max occupants, and description are required.')
+        return redirect('manage_apartments')
+
+    if Apartment.objects.exclude(id=apartment.id).filter(unit_number=unit_number).exists():
+        messages.error(request, f'Apartment unit {unit_number} already exists.')
+        return redirect('manage_apartments')
+
+    valid_types = [choice[0] for choice in Apartment.APARTMENT_TYPES]
+    if apartment_type not in valid_types:
+        messages.error(request, 'Invalid apartment type selected.')
+        return redirect('manage_apartments')
+
+    try:
+        monthly_rent_value = float(monthly_rent)
+        max_occupants_value = int(max_occupants)
+    except (TypeError, ValueError):
+        messages.error(request, 'Monthly rent and max occupants must be valid numbers.')
+        return redirect('manage_apartments')
+
+    if monthly_rent_value <= 0:
+        messages.error(request, 'Monthly rent must be greater than 0.')
+        return redirect('manage_apartments')
+
+    if max_occupants_value <= 0:
+        messages.error(request, 'Max occupants must be greater than 0.')
+        return redirect('manage_apartments')
+
+    apartment.unit_number = unit_number
+    apartment.apartment_type = apartment_type
+    apartment.monthly_rent = monthly_rent_value
+    apartment.max_occupants = max_occupants_value
+    apartment.description = description
+    apartment.amenities = amenities
+    apartment.save()
+
+    messages.success(request, f'Apartment {apartment.unit_number} updated successfully.')
+    return redirect('manage_apartments')
+
 def check_availability(request):
     """AJAX endpoint to check apartment availability for a date range
     
@@ -1243,13 +1343,40 @@ def maintenance(request):
         maintenance_type = request.POST.get('maintenance_type')  # Type of maintenance needed
         description = request.POST.get('description')  # Detailed description
         priority = request.POST.get('priority', 'medium')  # Urgency level
-        
-        # Apartment is optional - not required for general maintenance
-        apartment = None
-        
+
+        today = timezone.now().date()
+
+        # Auto-attach tenant's currently occupied apartment so staff can
+        # immediately see which unit the request belongs to.
+        current_lease = (
+            Lease.objects.select_related('apartment')
+            .filter(
+                tenant=request.user,
+                status='active',
+                move_in_date__lte=today,
+            )
+            .filter(
+                Q(move_out_date__isnull=True) | Q(move_out_date__gte=today)
+            )
+            .order_by('-move_in_date', '-created_at')
+            .first()
+        )
+
+        # Fallback: if no active lease is found, use latest pending lease.
+        if current_lease is None:
+            current_lease = (
+                Lease.objects.select_related('apartment')
+                .filter(tenant=request.user, status='pending')
+                .order_by('-created_at')
+                .first()
+            )
+
+        apartment = current_lease.apartment if current_lease else None
+
         # Create maintenance request in database
         maintenance = Maintenance.objects.create(
             tenant=request.user,
+            lease=current_lease,
             apartment=apartment,
             maintenance_type=maintenance_type,
             description=description,
@@ -1291,11 +1418,13 @@ def maintenance(request):
         return redirect('maintenance')
     
     # Get user's rooms from active leases
+    today = timezone.now().date()
     active_leases = Lease.objects.filter(
         tenant=request.user,
         status='active',
-        move_in_date__lte=datetime.now().date(),
-        move_out_date__gt=datetime.now().date()
+        move_in_date__lte=today
+    ).filter(
+        Q(move_out_date__isnull=True) | Q(move_out_date__gte=today)
     )
     user_rooms = Apartment.objects.filter(lease__in=active_leases).distinct()
     user_maintenance = Maintenance.objects.filter(tenant=request.user, is_cleared=False).order_by('-created_at')
@@ -1335,14 +1464,88 @@ def staff_maintenance_list(request):
     
     Workflow: Created → In Progress → Completed → Cleared
     """
-    maint_requests = Maintenance.objects.select_related('tenant', 'apartment', 'lease').filter(is_cleared=False).order_by('-created_at')
-    status_counts = maint_requests.aggregate(
+    maint_qs = (
+        Maintenance.objects
+        .select_related('tenant', 'apartment', 'lease', 'lease__apartment')
+        .filter(is_cleared=False)
+        .order_by('-created_at')
+    )
+
+    status_counts = maint_qs.aggregate(
         total=Count('id'),
         pending=Count('id', filter=Q(status='pending')),
         in_progress=Count('id', filter=Q(status='in_progress')),
         completed=Count('id', filter=Q(status='completed')),
         cancelled=Count('id', filter=Q(status='cancelled')),
     )
+
+    maint_requests = list(maint_qs)
+    today = timezone.now().date()
+
+    # Backfill apartment on older requests that were created as unassigned.
+    unresolved_tenant_ids = {
+        req.tenant_id
+        for req in maint_requests
+        if not req.apartment_id and not (req.lease_id and req.lease and req.lease.apartment_id)
+    }
+
+    active_leases_by_tenant = {}
+    pending_leases_by_tenant = {}
+
+    if unresolved_tenant_ids:
+        active_leases = (
+            Lease.objects.select_related('apartment')
+            .filter(
+                tenant_id__in=unresolved_tenant_ids,
+                status='active',
+                apartment__isnull=False,
+                move_in_date__lte=today,
+            )
+            .filter(Q(move_out_date__isnull=True) | Q(move_out_date__gte=today))
+            .order_by('tenant_id', '-move_in_date', '-created_at')
+        )
+        for lease in active_leases:
+            active_leases_by_tenant.setdefault(lease.tenant_id, lease)
+
+        pending_leases = (
+            Lease.objects.select_related('apartment')
+            .filter(
+                tenant_id__in=unresolved_tenant_ids,
+                status='pending',
+                apartment__isnull=False,
+            )
+            .order_by('tenant_id', '-created_at')
+        )
+        for lease in pending_leases:
+            pending_leases_by_tenant.setdefault(lease.tenant_id, lease)
+
+    requests_to_update = []
+    for req in maint_requests:
+        unit_number = None
+        source_lease = None
+
+        if req.apartment_id:
+            unit_number = req.apartment.unit_number
+        elif req.lease_id and req.lease and req.lease.apartment_id:
+            source_lease = req.lease
+            unit_number = req.lease.apartment.unit_number
+        else:
+            source_lease = active_leases_by_tenant.get(req.tenant_id) or pending_leases_by_tenant.get(req.tenant_id)
+            if source_lease and source_lease.apartment_id:
+                unit_number = source_lease.apartment.unit_number
+
+        req.display_apartment_unit = unit_number
+
+        # Persist backfilled apartment/lease so it stays correct in future loads.
+        if not req.apartment_id and source_lease and source_lease.apartment_id:
+            req.apartment = source_lease.apartment
+            if not req.lease_id:
+                req.lease = source_lease
+            requests_to_update.append(req)
+
+    if requests_to_update:
+        Maintenance.objects.bulk_update(requests_to_update, ['apartment', 'lease'])
+
     return render(request, 'staff_maintenance.html', {
         'maintenance_requests': maint_requests,
         'status_counts': status_counts,
@@ -2132,11 +2335,11 @@ def request_event(request):
 def password_reset_request(request):
     """Request password reset"""
     if request.method == 'POST':
-        username_or_email = request.POST.get('username_or_email', '').strip()
-
-        if not username_or_email:
-            messages.error(request, 'Please enter your username or email address.')
+        form = PasswordResetRequestForm(request.POST)
+        if not form.is_valid():
+            messages.error(request, _first_form_error(form, 'Please enter your username or email address.'))
             return render(request, 'password_reset.html')
+        username_or_email = form.cleaned_data['username_or_email']
 
         # Try to find user by username or email
         user = None
@@ -2171,34 +2374,8 @@ def password_reset_request(request):
             f'/password-reset-confirm/{uid}/{token}/'
         )
 
-        # Send email
-        subject = 'Password Reset - Casa de Liberty'
-        message = f"""
-Hello {user.username},
-
-You requested to reset your password for Casa de Liberty.
-
-Click the link below to reset your password:
-{reset_link}
-
-If you didn't request this, please ignore this email.
-
-This link will expire in 24 hours.
-
-Best regards,
-Casa de Liberty Team
-        """
-
-        try:
-            send_mail(
-                subject,
-                message,
-                settings.DEFAULT_FROM_EMAIL,
-                [user.email],
-                fail_silently=False,
-            )
-        except Exception:
-            logger.exception('Failed sending password reset email for user_id=%s', user.id)
+        if not send_password_reset_link_email(user, reset_link):
+            logger.warning('Password reset email send failed or email backend misconfigured for user_id=%s', user.id)
             messages.error(request, 'Unable to send reset email right now. Please try again later.')
             return render(request, 'password_reset.html')
 
@@ -2217,20 +2394,11 @@ def password_reset_confirm(request, uidb64, token):
     
     if user is not None and default_token_generator.check_token(user, token):
         if request.method == 'POST':
-            password1 = request.POST.get('password1', '')
-            password2 = request.POST.get('password2', '')
-
-            if not password1 or not password2:
-                messages.error(request, 'Please fill in both password fields.')
+            form = PasswordResetConfirmForm(request.POST)
+            if not form.is_valid():
+                messages.error(request, _first_form_error(form, 'Please check your password fields.'))
                 return render(request, 'password_reset_confirm.html', {'validlink': True})
-            
-            if password1 != password2:
-                messages.error(request, 'Passwords do not match!')
-                return render(request, 'password_reset_confirm.html', {'validlink': True})
-            
-            if len(password1) < 6:
-                messages.error(request, 'Password must be at least 6 characters long!')
-                return render(request, 'password_reset_confirm.html', {'validlink': True})
+            password1 = form.cleaned_data['password1']
             
             # Set new password
             try:
@@ -2337,7 +2505,11 @@ def settings(request):
 @login_required
 def change_password(request):
     """Change password while logged in using OTP verification."""
-    show_otp_form = False
+    def _render_change_password(show_otp_form=False):
+        return render(request, 'change_password.html', {
+            'show_otp_form': show_otp_form,
+            'email_available': email_available,
+        })
 
     email_available = bool((request.user.email or '').strip())
     if not email_available:
@@ -2348,19 +2520,19 @@ def change_password(request):
         action = request.POST.get('action')
 
         if action == 'request_otp':
-            current_password = request.POST.get('current_password', '')
-
-            if not current_password:
-                messages.error(request, 'Please enter your current password.')
-                return render(request, 'change_password.html', {'show_otp_form': False})
+            request_form = ChangePasswordRequestOTPForm(request.POST)
+            if not request_form.is_valid():
+                messages.error(request, _first_form_error(request_form, 'Please enter your current password.'))
+                return _render_change_password(False)
+            current_password = request_form.cleaned_data['current_password']
 
             if not request.user.check_password(current_password):
                 messages.error(request, 'Current password is incorrect!')
-                return render(request, 'change_password.html', {'show_otp_form': False})
+                return _render_change_password(False)
 
             try:
                 otp_code = OTP.generate_otp()
-                OTP.objects.update_or_create(
+                otp_record, _ = OTP.objects.update_or_create(
                     user=request.user,
                     defaults={
                         'otp_code': otp_code,
@@ -2371,108 +2543,54 @@ def change_password(request):
             except Exception:
                 logger.exception('Failed generating/storing OTP for user_id=%s', request.user.id)
                 messages.error(request, 'Unable to generate OTP right now. Please try again.')
-                return render(request, 'change_password.html', {
-                    'show_otp_form': False,
-                    'email_available': email_available,
-                })
+                return _render_change_password(False)
 
             try:
                 if not send_otp_email(request.user, otp_code):
+                    # Invalidate this code when delivery fails.
+                    otp_record.is_used = True
+                    otp_record.save(update_fields=['is_used'])
                     messages.error(request, 'Unable to send OTP email right now. Please try again.')
-                    return render(request, 'change_password.html', {
-                        'show_otp_form': False,
-                        'email_available': email_available,
-                    })
+                    return _render_change_password(False)
             except Exception:
                 logger.exception('Unexpected OTP email error for user_id=%s', request.user.id)
                 messages.error(request, 'Unable to send OTP email right now. Please try again.')
-                return render(request, 'change_password.html', {
-                    'show_otp_form': False,
-                    'email_available': email_available,
-                })
+                return _render_change_password(False)
 
             messages.success(request, 'OTP sent to your email. Enter it below to finish changing your password.')
 
-            show_otp_form = True
+            return _render_change_password(True)
 
         elif action == 'verify_otp':
-            show_otp_form = True
-            otp_code = request.POST.get('otp_code', '').strip()
-            new_password1 = request.POST.get('new_password1', '')
-            new_password2 = request.POST.get('new_password2', '')
-
-            if not otp_code:
-                messages.error(request, 'Please enter the OTP code from your email.')
-                return render(request, 'change_password.html', {
-                    'show_otp_form': True,
-                    'email_available': email_available,
-                })
-
-            if not otp_code.isdigit() or len(otp_code) != 6:
-                messages.error(request, 'OTP must be a 6-digit code.')
-                return render(request, 'change_password.html', {
-                    'show_otp_form': True,
-                    'email_available': email_available,
-                })
-
-            if not new_password1 or not new_password2:
-                messages.error(request, 'Please fill in both new password fields.')
-                return render(request, 'change_password.html', {
-                    'show_otp_form': True,
-                    'email_available': email_available,
-                })
-
-            if new_password1 != new_password2:
-                messages.error(request, 'New passwords do not match!')
-                return render(request, 'change_password.html', {
-                    'show_otp_form': True,
-                    'email_available': email_available,
-                })
-
-            if len(new_password1) < 6:
-                messages.error(request, 'Password must be at least 6 characters long!')
-                return render(request, 'change_password.html', {
-                    'show_otp_form': True,
-                    'email_available': email_available,
-                })
+            verify_form = ChangePasswordVerifyOTPForm(request.POST)
+            if not verify_form.is_valid():
+                messages.error(request, _first_form_error(verify_form, 'Please check your OTP and new password.'))
+                return _render_change_password(True)
+            otp_code = verify_form.cleaned_data['otp_code']
+            new_password1 = verify_form.cleaned_data['new_password1']
 
             if request.user.check_password(new_password1):
                 messages.error(request, 'New password must be different from current password!')
-                return render(request, 'change_password.html', {
-                    'show_otp_form': True,
-                    'email_available': email_available,
-                })
+                return _render_change_password(True)
 
             try:
                 otp_record = OTP.objects.filter(user=request.user, is_used=False).first()
             except Exception:
                 logger.exception('Failed loading OTP record for user_id=%s', request.user.id)
                 messages.error(request, 'Unable to verify OTP right now. Please try again.')
-                return render(request, 'change_password.html', {
-                    'show_otp_form': True,
-                    'email_available': email_available,
-                })
+                return _render_change_password(True)
 
             if not otp_record:
                 messages.error(request, 'No active OTP found. Please request a new OTP.')
-                return render(request, 'change_password.html', {
-                    'show_otp_form': False,
-                    'email_available': email_available,
-                })
+                return _render_change_password(False)
 
             if otp_record.is_expired():
                 messages.error(request, 'Your OTP has expired. Please request a new one.')
-                return render(request, 'change_password.html', {
-                    'show_otp_form': False,
-                    'email_available': email_available,
-                })
+                return _render_change_password(False)
 
             if otp_record.otp_code != otp_code:
                 messages.error(request, 'Invalid OTP code. Please try again.')
-                return render(request, 'change_password.html', {
-                    'show_otp_form': True,
-                    'email_available': email_available,
-                })
+                return _render_change_password(True)
 
             try:
                 with transaction.atomic():
@@ -2488,21 +2606,16 @@ def change_password(request):
             except Exception:
                 logger.exception('Failed finalizing OTP password change for user_id=%s', request.user.id)
                 messages.error(request, 'Unable to change your password right now. Please try again.')
-                return render(request, 'change_password.html', {
-                    'show_otp_form': True,
-                    'email_available': email_available,
-                })
+                return _render_change_password(True)
 
             messages.success(request, 'Your password has been changed successfully!')
             return redirect('dashboard')
 
         else:
             messages.error(request, 'Invalid password change request. Please try again.')
+            return _render_change_password(False)
 
-    return render(request, 'change_password.html', {
-        'show_otp_form': show_otp_form,
-        'email_available': email_available,
-    })
+    return _render_change_password(False)
 
 
 # ============================================
