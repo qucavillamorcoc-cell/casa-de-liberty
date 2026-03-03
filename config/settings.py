@@ -21,15 +21,22 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-)k69t8s!a*l=w7rnl0*gc@ddrn
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
+
+def _as_bool(value, default=False):
+    if value is None:
+        return default
+    return str(value).strip().lower() in ('1', 'true', 'yes', 'on')
+
 # Detect local Django dev server (`python manage.py runserver`) so we don't
 # force HTTPS on a server that only speaks HTTP.
 IS_RUNSERVER = any(arg.startswith('runserver') for arg in sys.argv)
-IS_LOCAL_HTTPS_DEV = os.getenv('LOCAL_HTTPS_DEV', '0') == '1'
+IS_LOCAL_HTTPS_DEV = _as_bool(os.getenv('LOCAL_HTTPS_DEV', '0'))
+USE_S3_MEDIA = _as_bool(os.getenv('USE_S3_MEDIA', 'False'))
 SERVE_MEDIA_IN_DEV = (
     DEBUG
     or IS_RUNSERVER
     or IS_LOCAL_HTTPS_DEV
-    or os.getenv('SERVE_MEDIA', 'False').strip().lower() in ('1', 'true', 'yes', 'on')
+    or _as_bool(os.getenv('SERVE_MEDIA', 'False'))
 )
 
 def _detect_local_ipv4():
@@ -116,6 +123,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'core',
 ]
+
+if USE_S3_MEDIA:
+    INSTALLED_APPS.append('storages')
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -268,11 +278,62 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'  # Production static files
 STATICFILES_DIRS = [BASE_DIR / 'static']  # Development static files
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'  # Production optimization
 
 # Media files (User uploads)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+    },
+}
+
+if USE_S3_MEDIA:
+    required_s3_vars = [
+        'AWS_STORAGE_BUCKET_NAME',
+        'AWS_ACCESS_KEY_ID',
+        'AWS_SECRET_ACCESS_KEY',
+    ]
+    missing_s3_vars = [name for name in required_s3_vars if not (os.getenv(name, '').strip())]
+    if missing_s3_vars:
+        raise RuntimeError(
+            'USE_S3_MEDIA=True but required variables are missing: '
+            + ', '.join(missing_s3_vars)
+        )
+
+    AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME', '').strip()
+    AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID', '').strip()
+    AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY', '').strip()
+    AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', '').strip() or None
+    AWS_S3_ENDPOINT_URL = os.getenv('AWS_S3_ENDPOINT_URL', '').strip() or None
+    AWS_S3_CUSTOM_DOMAIN = os.getenv('AWS_S3_CUSTOM_DOMAIN', '').strip()
+    AWS_MEDIA_LOCATION = (os.getenv('AWS_MEDIA_LOCATION', 'media') or 'media').strip('/') or 'media'
+    AWS_QUERYSTRING_AUTH = _as_bool(os.getenv('AWS_QUERYSTRING_AUTH', 'False'))
+    AWS_S3_FILE_OVERWRITE = _as_bool(os.getenv('AWS_S3_FILE_OVERWRITE', 'False'))
+    AWS_DEFAULT_ACL = None
+
+    STORAGES['default'] = {
+        'BACKEND': 'storages.backends.s3.S3Storage',
+        'OPTIONS': {
+            'access_key': AWS_ACCESS_KEY_ID,
+            'secret_key': AWS_SECRET_ACCESS_KEY,
+            'bucket_name': AWS_STORAGE_BUCKET_NAME,
+            'region_name': AWS_S3_REGION_NAME,
+            'endpoint_url': AWS_S3_ENDPOINT_URL,
+            'custom_domain': AWS_S3_CUSTOM_DOMAIN or None,
+            'default_acl': AWS_DEFAULT_ACL,
+            'querystring_auth': AWS_QUERYSTRING_AUTH,
+            'file_overwrite': AWS_S3_FILE_OVERWRITE,
+            'location': AWS_MEDIA_LOCATION,
+        },
+    }
+
+    if AWS_S3_CUSTOM_DOMAIN:
+        MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN.rstrip("/")}/{AWS_MEDIA_LOCATION}/'
 
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
