@@ -35,6 +35,7 @@ from .emails import (
     send_admin_notification,
     send_otp_email,
     send_password_reset_link_email,
+    get_email_configuration_issue,
 )
 from .forms import (
     LoginForm,
@@ -2505,6 +2506,11 @@ def settings(request):
 @login_required
 def change_password(request):
     """Change password while logged in using OTP verification."""
+    OTP_RESEND_COOLDOWN_SECONDS = 60
+    OTP_MAX_VERIFY_ATTEMPTS = 5
+    OTP_LAST_SENT_KEY = 'change_password_otp_last_sent_ts'
+    OTP_ATTEMPTS_KEY = 'change_password_otp_attempts'
+
     def _render_change_password(show_otp_form=False):
         return render(request, 'change_password.html', {
             'show_otp_form': show_otp_form,
@@ -2530,6 +2536,16 @@ def change_password(request):
                 messages.error(request, 'Current password is incorrect!')
                 return _render_change_password(False)
 
+            now_ts = int(timezone.now().timestamp())
+            last_sent_ts = int(request.session.get(OTP_LAST_SENT_KEY, 0) or 0)
+            cooldown_remaining = OTP_RESEND_COOLDOWN_SECONDS - (now_ts - last_sent_ts)
+            if cooldown_remaining > 0:
+                messages.error(
+                    request,
+                    f'Please wait {cooldown_remaining} second{"s" if cooldown_remaining != 1 else ""} before requesting a new OTP.'
+                )
+                return _render_change_password(True)
+
             try:
                 otp_code = OTP.generate_otp()
                 otp_record, _ = OTP.objects.update_or_create(
@@ -2550,13 +2566,20 @@ def change_password(request):
                     # Invalidate this code when delivery fails.
                     otp_record.is_used = True
                     otp_record.save(update_fields=['is_used'])
-                    messages.error(request, 'Unable to send OTP email right now. Please try again.')
+                    base_msg = 'Unable to send OTP email right now. Please try again.'
+                    config_issue = get_email_configuration_issue()
+                    if config_issue:
+                        messages.error(request, f'{base_msg} {config_issue}')
+                    else:
+                        messages.error(request, base_msg)
                     return _render_change_password(False)
             except Exception:
                 logger.exception('Unexpected OTP email error for user_id=%s', request.user.id)
                 messages.error(request, 'Unable to send OTP email right now. Please try again.')
                 return _render_change_password(False)
 
+            request.session[OTP_LAST_SENT_KEY] = now_ts
+            request.session[OTP_ATTEMPTS_KEY] = 0
             messages.success(request, 'OTP sent to your email. Enter it below to finish changing your password.')
 
             return _render_change_password(True)
@@ -2581,15 +2604,32 @@ def change_password(request):
                 return _render_change_password(True)
 
             if not otp_record:
+                request.session[OTP_ATTEMPTS_KEY] = 0
                 messages.error(request, 'No active OTP found. Please request a new OTP.')
                 return _render_change_password(False)
 
             if otp_record.is_expired():
+                otp_record.is_used = True
+                otp_record.save(update_fields=['is_used'])
+                request.session[OTP_ATTEMPTS_KEY] = 0
                 messages.error(request, 'Your OTP has expired. Please request a new one.')
                 return _render_change_password(False)
 
             if otp_record.otp_code != otp_code:
-                messages.error(request, 'Invalid OTP code. Please try again.')
+                attempts = int(request.session.get(OTP_ATTEMPTS_KEY, 0) or 0) + 1
+                request.session[OTP_ATTEMPTS_KEY] = attempts
+
+                if attempts >= OTP_MAX_VERIFY_ATTEMPTS:
+                    otp_record.is_used = True
+                    otp_record.save(update_fields=['is_used'])
+                    messages.error(request, 'Too many invalid OTP attempts. Please request a new OTP.')
+                    return _render_change_password(False)
+
+                remaining = OTP_MAX_VERIFY_ATTEMPTS - attempts
+                messages.error(
+                    request,
+                    f'Invalid OTP code. {remaining} attempt{"s" if remaining != 1 else ""} remaining.'
+                )
                 return _render_change_password(True)
 
             try:
@@ -2608,6 +2648,8 @@ def change_password(request):
                 messages.error(request, 'Unable to change your password right now. Please try again.')
                 return _render_change_password(True)
 
+            request.session.pop(OTP_ATTEMPTS_KEY, None)
+            request.session.pop(OTP_LAST_SENT_KEY, None)
             messages.success(request, 'Your password has been changed successfully!')
             return redirect('dashboard')
 

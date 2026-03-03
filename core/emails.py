@@ -12,18 +12,30 @@ def _is_smtp_backend():
     return 'smtp' in backend
 
 
-def _email_backend_configured():
-    """Return True if email backend appears configured enough for OTP delivery."""
+def get_email_configuration_issue():
+    """Return a human-readable SMTP config issue message, or empty string."""
     if not _is_smtp_backend():
-        # Console/file/locmem backends are valid in local development.
-        return True
+        return ''
 
     host_user = (getattr(settings, 'EMAIL_HOST_USER', '') or '').strip()
     host_password = (getattr(settings, 'EMAIL_HOST_PASSWORD', '') or '').strip()
     placeholder_values = {'', 'your-email@gmail.com'}
-    if host_user in placeholder_values or not host_password:
-        return False
-    return True
+
+    if host_user in placeholder_values and not host_password:
+        return (
+            'Email SMTP is not configured yet. Set EMAIL_HOST_USER and '
+            'EMAIL_HOST_PASSWORD in Railway Variables.'
+        )
+    if host_user in placeholder_values:
+        return 'EMAIL_HOST_USER is missing. Set it in Railway Variables.'
+    if not host_password:
+        return 'EMAIL_HOST_PASSWORD is missing. Set it in Railway Variables.'
+    return ''
+
+
+def _email_backend_configured():
+    """Return True if email backend appears configured enough for OTP delivery."""
+    return not get_email_configuration_issue()
 
 
 def _send_email(subject, message, recipients):

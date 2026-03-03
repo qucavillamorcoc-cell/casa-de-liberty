@@ -146,6 +146,53 @@ class ChangePasswordViewTests(TestCase):
         self.assertContains(response, 'OTP must be a 6-digit code')
         mock_send_otp.assert_called_once()
 
+    @patch('core.views.send_otp_email', return_value=True)
+    def test_request_otp_enforces_resend_cooldown(self, mock_send_otp):
+        first = self.client.post(reverse('change_password'), {
+            'action': 'request_otp',
+            'current_password': 'OldPass123!',
+        }, secure=True)
+        self.assertEqual(first.status_code, 200)
+        self.assertContains(first, 'Enter OTP Code')
+
+        second = self.client.post(reverse('change_password'), {
+            'action': 'request_otp',
+            'current_password': 'OldPass123!',
+        }, secure=True)
+        self.assertEqual(second.status_code, 200)
+        self.assertContains(second, 'Please wait')
+        self.assertEqual(mock_send_otp.call_count, 1)
+
+    @patch('core.views.send_otp_email', return_value=True)
+    def test_verify_otp_too_many_attempts_requires_new_otp(self, mock_send_otp):
+        self.client.post(reverse('change_password'), {
+            'action': 'request_otp',
+            'current_password': 'OldPass123!',
+        }, secure=True)
+
+        for _ in range(4):
+            response = self.client.post(reverse('change_password'), {
+                'action': 'verify_otp',
+                'otp_code': '000000',
+                'new_password1': 'NewPass123!',
+                'new_password2': 'NewPass123!',
+            }, secure=True)
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, 'Invalid OTP code')
+
+        final = self.client.post(reverse('change_password'), {
+            'action': 'verify_otp',
+            'otp_code': '000000',
+            'new_password1': 'NewPass123!',
+            'new_password2': 'NewPass123!',
+        }, secure=True)
+        self.assertEqual(final.status_code, 200)
+        self.assertContains(final, 'Too many invalid OTP attempts')
+
+        otp_record = OTP.objects.get(user=self.user)
+        self.assertTrue(otp_record.is_used)
+        mock_send_otp.assert_called_once()
+
 
 class PasswordResetViewTests(TestCase):
     def setUp(self):
