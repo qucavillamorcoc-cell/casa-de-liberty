@@ -25,7 +25,12 @@ DEBUG = os.getenv('DEBUG', 'True') == 'True'
 # force HTTPS on a server that only speaks HTTP.
 IS_RUNSERVER = any(arg.startswith('runserver') for arg in sys.argv)
 IS_LOCAL_HTTPS_DEV = os.getenv('LOCAL_HTTPS_DEV', '0') == '1'
-SERVE_MEDIA_IN_DEV = DEBUG or IS_RUNSERVER or IS_LOCAL_HTTPS_DEV
+SERVE_MEDIA_IN_DEV = (
+    DEBUG
+    or IS_RUNSERVER
+    or IS_LOCAL_HTTPS_DEV
+    or os.getenv('SERVE_MEDIA', 'False').strip().lower() in ('1', 'true', 'yes', 'on')
+)
 
 def _detect_local_ipv4():
     """Best-effort local LAN IPv4 detection for local-device testing."""
