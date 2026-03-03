@@ -8,9 +8,9 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20100%20100%22%3E%3Ctext%20y=%22.9em%22%20font-size=%2290%22%3E%F0%9F%8F%A8%3C/text%3E%3C/svg%3E">
     <!-- Global Theme Manager - Load early to prevent theme flashing -->
     <script src="{% static 'js/theme.js' %}"></script>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=20260226-portal">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=20260303-refresh">
     <link rel="stylesheet" href="{% static 'css/forms.css' %}">
-    <link rel="stylesheet" href="{% static 'css/responsive.css' %}?v=20260226-portal">
+    <link rel="stylesheet" href="{% static 'css/responsive.css' %}?v=20260303-refresh">
     <style>
         .notification-indicator {
             position: absolute;
@@ -258,6 +258,20 @@
             background: rgba(7, 13, 26, 0.65);
         }
 
+        html:not(.dark-mode) body.portal-shell .sidebar-footer {
+            background: rgba(255, 255, 255, 0.94) !important;
+        }
+
+        body.portal-shell .sidebar-footer-divider {
+            height: 1px;
+            margin: 16px 0;
+            background: rgba(148, 163, 184, 0.26);
+        }
+
+        html.dark-mode body.portal-shell .sidebar-footer-divider {
+            background: rgba(148, 163, 184, 0.22);
+        }
+
         body.portal-shell .sidebar-user-avatar {
             background: linear-gradient(135deg, #1d4ed8 0%, #7c3aed 100%) !important;
             box-shadow: 0 8px 18px rgba(59, 130, 246, 0.25);
@@ -267,6 +281,10 @@
             color: #f8fafc !important;
             font-size: 13px !important;
             font-weight: 700 !important;
+        }
+
+        html:not(.dark-mode) body.portal-shell .sidebar-user-info p {
+            color: #0f172a !important;
         }
 
         body.portal-shell .sidebar-user-info span {
@@ -1048,6 +1066,197 @@
                 display: none !important;
             }
         }
+
+        /* -----------------------------------------------------------------
+           2026 Visual Refresh Override
+           Light-first, softer contrast, clearer surfaces.
+        ------------------------------------------------------------------ */
+        body.portal-shell {
+            --portal-shell-sidebar-width: 236px;
+            --portal-shell-border: rgba(15, 23, 42, 0.08);
+            --portal-shell-text: #0f172a;
+            --portal-shell-muted: #475569;
+            --portal-shell-accent: #2563eb;
+            --portal-shell-accent-2: #0ea5e9;
+            --portal-shell-shadow: 0 14px 34px rgba(15, 23, 42, 0.10);
+            background:
+                radial-gradient(circle at 8% 4%, rgba(14, 165, 233, 0.14), transparent 36%),
+                radial-gradient(circle at 94% 16%, rgba(59, 130, 246, 0.10), transparent 38%),
+                linear-gradient(180deg, #f8fbff 0%, #eef5ff 52%, #f8fbff 100%) !important;
+            color: var(--portal-shell-text) !important;
+            font-family: 'Plus Jakarta Sans', 'Manrope', 'Segoe UI', sans-serif;
+        }
+
+        html.dark-mode body.portal-shell {
+            --portal-shell-border: rgba(148, 163, 184, 0.18);
+            --portal-shell-text: #e7eef9;
+            --portal-shell-muted: #a6b6cc;
+            --portal-shell-shadow: 0 16px 36px rgba(2, 8, 23, 0.28);
+            background:
+                radial-gradient(circle at 10% 2%, rgba(14, 165, 233, 0.20), transparent 38%),
+                radial-gradient(circle at 90% 14%, rgba(59, 130, 246, 0.18), transparent 40%),
+                linear-gradient(180deg, #0d172a 0%, #122039 54%, #0e182c 100%) !important;
+        }
+
+        body.portal-shell .sidebar {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(244, 249, 255, 0.98) 100%) !important;
+            border-right: 1px solid var(--portal-shell-border) !important;
+            box-shadow: 8px 0 28px rgba(15, 23, 42, 0.08);
+        }
+
+        html.dark-mode body.portal-shell .sidebar {
+            background: linear-gradient(180deg, rgba(15, 24, 40, 0.96) 0%, rgba(16, 26, 45, 0.98) 100%) !important;
+            box-shadow: 8px 0 28px rgba(2, 8, 23, 0.35);
+        }
+
+        body.portal-shell .sidebar-logo,
+        body.portal-shell .sidebar-footer {
+            border-color: var(--portal-shell-border) !important;
+        }
+
+        body.portal-shell .sidebar-logo-text h2 {
+            color: #0f172a !important;
+        }
+
+        body.portal-shell .sidebar-logo-text p,
+        body.portal-shell .sidebar-user-info span {
+            color: #5b6b82 !important;
+        }
+
+        html.dark-mode body.portal-shell .sidebar-logo-text h2 {
+            color: #f8fbff !important;
+        }
+
+        html.dark-mode body.portal-shell .sidebar-logo-text p,
+        html.dark-mode body.portal-shell .sidebar-user-info span {
+            color: #9fb1ca !important;
+        }
+
+        body.portal-shell .sidebar-menu a {
+            color: #334155 !important;
+            border: 1px solid transparent;
+        }
+
+        body.portal-shell .sidebar-menu a:hover {
+            background: rgba(37, 99, 235, 0.10) !important;
+            border-color: rgba(37, 99, 235, 0.18) !important;
+            color: #0f172a !important;
+        }
+
+        body.portal-shell .sidebar-menu a.active {
+            background: linear-gradient(90deg, rgba(37, 99, 235, 0.16) 0%, rgba(14, 165, 233, 0.09) 100%) !important;
+            border-color: rgba(37, 99, 235, 0.22) !important;
+            color: #0f172a !important;
+            box-shadow: inset 3px 0 0 #2563eb;
+        }
+
+        html.dark-mode body.portal-shell .sidebar-menu a {
+            color: #c6d4e8 !important;
+        }
+
+        html.dark-mode body.portal-shell .sidebar-menu a:hover {
+            background: rgba(148, 163, 184, 0.12) !important;
+            border-color: rgba(148, 163, 184, 0.22) !important;
+            color: #f8fbff !important;
+        }
+
+        html.dark-mode body.portal-shell .sidebar-menu a.active {
+            color: #ffffff !important;
+        }
+
+        body.portal-shell .main-content {
+            background: transparent !important;
+        }
+
+        body.portal-shell .page-title {
+            color: #0f172a !important;
+            letter-spacing: -0.02em;
+        }
+
+        html.dark-mode body.portal-shell .page-title {
+            color: #edf3fc !important;
+        }
+
+        body.portal-shell .section,
+        body.portal-shell .luxury-card,
+        body.portal-shell .stat-card,
+        body.portal-shell .portal-panel,
+        body.portal-shell .user-profile {
+            background: rgba(255, 255, 255, 0.92) !important;
+            border: 1px solid rgba(15, 23, 42, 0.08) !important;
+            box-shadow: var(--portal-shell-shadow) !important;
+            backdrop-filter: blur(6px);
+        }
+
+        html.dark-mode body.portal-shell .section,
+        html.dark-mode body.portal-shell .luxury-card,
+        html.dark-mode body.portal-shell .stat-card,
+        html.dark-mode body.portal-shell .portal-panel,
+        html.dark-mode body.portal-shell .user-profile {
+            background: rgba(17, 29, 48, 0.90) !important;
+            border: 1px solid rgba(148, 163, 184, 0.16) !important;
+        }
+
+        body.portal-shell .page-subtitle,
+        body.portal-shell .portal-panel-subtitle,
+        body.portal-shell .portal-note,
+        body.portal-shell .stat-label,
+        body.portal-shell .stat-subtitle {
+            color: #52637a !important;
+        }
+
+        html.dark-mode body.portal-shell .page-subtitle,
+        html.dark-mode body.portal-shell .portal-panel-subtitle,
+        html.dark-mode body.portal-shell .portal-note,
+        html.dark-mode body.portal-shell .stat-label,
+        html.dark-mode body.portal-shell .stat-subtitle {
+            color: #9db0ca !important;
+        }
+
+        body.portal-shell .btn-luxury,
+        body.portal-shell .form-btn,
+        body.portal-shell .portal-link-btn,
+        body.portal-shell button[type="submit"] {
+            border-radius: 12px;
+        }
+
+        body.portal-shell .btn-luxury-primary,
+        body.portal-shell .form-btn-primary,
+        body.portal-shell .portal-link-btn.primary {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+            color: #ffffff !important;
+            box-shadow: 0 10px 22px rgba(37, 99, 235, 0.22);
+        }
+
+        body.portal-shell .btn-luxury-danger,
+        body.portal-shell .portal-link-btn.danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+            color: #ffffff !important;
+        }
+
+        body.portal-shell .input-field,
+        body.portal-shell .form-input,
+        body.portal-shell .form-select,
+        body.portal-shell .form-textarea,
+        body.portal-shell input,
+        body.portal-shell select,
+        body.portal-shell textarea {
+            background: rgba(255, 255, 255, 0.98) !important;
+            border: 1px solid #d6e3f2 !important;
+            color: #0f172a !important;
+        }
+
+        html.dark-mode body.portal-shell .input-field,
+        html.dark-mode body.portal-shell .form-input,
+        html.dark-mode body.portal-shell .form-select,
+        html.dark-mode body.portal-shell .form-textarea,
+        html.dark-mode body.portal-shell input,
+        html.dark-mode body.portal-shell select,
+        html.dark-mode body.portal-shell textarea {
+            background: rgba(24, 38, 60, 0.95) !important;
+            border: 1px solid #334862 !important;
+            color: #e7eef9 !important;
+        }
     </style>
     </head>
     <body class="portal-shell page-{{ request.resolver_match.url_name|default:'portal' }}">
@@ -1330,13 +1539,17 @@
                     background: rgba(255, 255, 255, 0.1);
                 }
                 
+                html:not(.dark-mode) a[href*="settings"] .sidebar-user:hover {
+                    background: rgba(37, 99, 235, 0.08);
+                }
+
                 html.dark-mode a[href*="settings"] .sidebar-user:hover {
                     background: rgba(255, 255, 255, 0.05);
                 }
             </style>
 
             <!-- Divider -->
-            <div style="height: 1px; background: #334155; margin: 16px 0;"></div>
+            <div class="sidebar-footer-divider"></div>
 
             <!-- Dark Mode Toggle -->
             <div class="dark-mode-toggle-footer">

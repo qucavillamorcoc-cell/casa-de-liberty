@@ -11,16 +11,20 @@
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <style>
         html.dark-mode {
-            --bg-primary: #111827;
-            --text-primary: #f3f4f6;
-            --text-secondary: #d1d5db;
-            --border-color: #4b5563;
+            --bg-primary: #0f172a;
+            --text-primary: #eaf1fb;
+            --text-secondary: #b6c5db;
+            --border-color: #2d3e58;
         }
     </style>
 </head>
-<body style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; position: relative;">
+<body style="background:
+    radial-gradient(circle at 10% 0%, rgba(14, 165, 233, 0.16), transparent 34%),
+    radial-gradient(circle at 92% 12%, rgba(59, 130, 246, 0.13), transparent 36%),
+    linear-gradient(180deg, #f7fbff 0%, #eef5ff 54%, #f7fbff 100%);
+    min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; position: relative; font-family: 'Plus Jakarta Sans', 'Manrope', 'Segoe UI', sans-serif;">
 
-<div style="background: var(--bg-primary, white); border-radius: 16px; padding: 40px; width: 100%; max-width: 450px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
+<div style="background: var(--bg-primary, white); border-radius: 18px; padding: 40px; width: 100%; max-width: 450px; box-shadow: 0 20px 50px rgba(15, 23, 42, 0.16); border: 1px solid var(--border-color, #dbe7f5);">
     <!-- Logo -->
     <div style="text-align: center; margin-bottom: 32px;">
         <div style="width: 64px; height: 64px; background: #f59e0b; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 16px;">

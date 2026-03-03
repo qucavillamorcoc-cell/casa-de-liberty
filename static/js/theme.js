@@ -10,7 +10,7 @@
     const THEME_KEY = 'casa-de-liberty-theme';
     const DARK_MODE_CLASS = 'dark-mode';
     const LIGHT_MODE_CLASS = 'light-mode';
-    const DEFAULT_THEME = 'dark';
+    const DEFAULT_THEME = 'light';
     const TOGGLE_SELECTOR = [
         'input[type="checkbox"]#theme-toggle',
         'input[type="checkbox"]#darkModeToggle',

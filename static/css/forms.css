@@ -2,13 +2,15 @@
 /* FORM STYLING - Shared across authentication pages */
 /* ============================================================================ */
 
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
 :root {
     --bg-primary: #ffffff;
-    --text-primary: #1e293b;
-    --text-secondary: #64748b;
-    --border-color: #e2e8f0;
-    --accent: #f59e0b;
-    --accent-dark: #d97706;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --border-color: #dbe7f5;
+    --accent: #2563eb;
+    --accent-dark: #1d4ed8;
 }
 
 html {
@@ -16,12 +18,12 @@ html {
 }
 
 html.dark-mode {
-    --bg-primary: #111827;
-    --text-primary: #f3f4f6;
-    --text-secondary: #d1d5db;
-    --border-color: #4b5563;
-    --accent: #f59e0b;
-    --accent-dark: #d97706;
+    --bg-primary: #0f172a;
+    --text-primary: #eaf1fb;
+    --text-secondary: #b6c5db;
+    --border-color: #2d3e58;
+    --accent: #60a5fa;
+    --accent-dark: #3b82f6;
 }
 
 /* ============================================================================ */
@@ -120,7 +122,9 @@ html.dark-mode .theme-toggle-text {
     padding: 40px;
     width: 100%;
     max-width: 450px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.14);
+    border: 1px solid var(--border-color);
+    font-family: 'Plus Jakarta Sans', 'Manrope', 'Segoe UI', sans-serif;
 }
 
 .form-header {
@@ -195,8 +199,8 @@ html.dark-mode .theme-toggle-text {
 
 html.dark-mode .form-input,
 html.dark-mode .form-textarea {
-    background: #1e293b;
-    color: #f3f4f6;
+    background: #17263d;
+    color: #eaf1fb;
 }
 
 .form-textarea {
@@ -223,7 +227,7 @@ html.dark-mode .form-textarea {
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3);
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
 }
 
 .btn-primary:active {

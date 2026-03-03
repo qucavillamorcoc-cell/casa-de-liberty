@@ -140,9 +140,11 @@
     .opsdash-metric-icon.violet { background: rgba(139,92,246,.14); border-color: rgba(139,92,246,.14); }
     .opsdash-metric-value { margin:0; font-size: clamp(22px, 1.7vw, 30px); font-weight: 800; line-height: 1; letter-spacing: -.02em; }
     .opsdash-metric-sub { color: var(--muted2); font-size: 12px; }
-    .opsdash-layout { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(300px, 1fr); gap: 14px; align-items: start; }
+    .opsdash-layout { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(300px, 1fr); gap: 14px; align-items: stretch; }
+    .opsdash-main { display: grid; gap: 14px; align-content: start; }
     .opsdash-layout--compact {
         grid-template-columns: 1fr;
+        align-items: start;
     }
     .opsdash-layout--compact .opsdash-stack {
         display: grid;
@@ -163,7 +165,7 @@
     .opsdash-panel-title { margin:0; font-size: 18px; font-weight: 800; letter-spacing: -.02em; }
     .opsdash-panel-desc { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
     .opsdash-badge { border:1px solid var(--border); border-radius:999px; padding:6px 10px; color: var(--muted); font-size:11px; font-weight:700; text-transform: uppercase; letter-spacing:.08em; }
-    .opsdash-linkpanel { display:block; text-decoration:none; color:inherit; transition: transform .16s ease, border-color .16s ease; }
+    .opsdash-linkpanel { display:block; text-decoration:none; color:inherit; transition: transform .16s ease, border-color .16s ease; height: 100%; }
     .opsdash-linkpanel:hover { transform: translateY(-2px); border-color: rgba(14,165,233,.22); }
     .opsdash-table-wrap { overflow:auto; border:1px solid var(--border); border-radius:12px; background: rgba(148,163,184,.03); }
     .opsdash-table { width: 100%; min-width: 660px; border-collapse: collapse; }
@@ -216,6 +218,183 @@
     }
     @media (max-width: 920px) { .opsdash-head { grid-template-columns: 1fr; } .opsdash-user { width: 100%; min-width: 0; } }
     @media (max-width: 760px) { .opsdash-actions-row { grid-template-columns: 1fr; } }
+
+    /* -----------------------------------------------------------------
+       Calm Visual Tuning
+       Reduces visual intensity for easier reading/scanning.
+    ------------------------------------------------------------------ */
+    html:not(.dark-mode) .opsdash {
+        --bg: rgba(255, 255, 255, 0.95);
+        --bg2: rgba(248, 252, 255, 0.96);
+        --border: rgba(15, 23, 42, 0.08);
+        --text: #13263f;
+        --muted: #5b6d84;
+        --muted2: #7386a1;
+        --accent: #3b82f6;
+        --accent2: #2563eb;
+        --shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+        gap: 12px;
+    }
+
+    .opsdash-title {
+        font-weight: 760;
+        letter-spacing: -0.015em;
+    }
+
+    .opsdash-subtitle {
+        margin-top: 6px;
+        font-size: 13px;
+    }
+
+    .opsdash-user {
+        border-radius: 12px;
+        box-shadow: none;
+    }
+
+    .opsdash-avatar {
+        border-radius: 10px;
+        box-shadow: 0 6px 16px rgba(37, 99, 235, 0.2);
+    }
+
+    .opsdash-hero {
+        border-radius: 16px;
+        background: linear-gradient(180deg, var(--bg2) 0%, var(--bg) 100%);
+        box-shadow: none;
+        padding: 16px;
+    }
+
+    .opsdash-hero h2 {
+        font-size: clamp(18px, 1.35vw, 24px);
+        font-weight: 760;
+    }
+
+    .opsdash-hero p {
+        margin-top: 8px;
+        font-size: 13px;
+    }
+
+    .opsdash-pills {
+        margin-top: 12px;
+        gap: 8px;
+    }
+
+    .opsdash-pill {
+        padding: 7px 10px;
+        background: rgba(59, 130, 246, 0.06);
+        border-color: rgba(59, 130, 246, 0.14);
+        color: #335176;
+    }
+
+    .opsdash-pill-dot {
+        width: 6px;
+        height: 6px;
+        box-shadow: none;
+    }
+
+    .opsdash-btn {
+        min-height: 40px;
+        border-radius: 10px;
+        font-size: 12px;
+        font-weight: 700;
+        background: rgba(148, 163, 184, 0.06);
+    }
+
+    .opsdash-btn--primary {
+        box-shadow: none;
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    }
+
+    .opsdash-card {
+        border-radius: 14px;
+        box-shadow: none;
+        background: linear-gradient(180deg, var(--bg) 0%, rgba(148, 163, 184, 0.01) 100%);
+    }
+
+    .opsdash-metric {
+        gap: 8px;
+    }
+
+    .opsdash-metric-label {
+        letter-spacing: 0.06em;
+    }
+
+    .opsdash-metric-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 9px;
+    }
+
+    .opsdash-metric-value {
+        font-size: clamp(18px, 1.5vw, 32px);
+        font-weight: 760;
+    }
+
+    .opsdash-metric-sub {
+        font-size: 11px;
+    }
+
+    .opsdash-panel-title {
+        font-size: 16px;
+        font-weight: 760;
+    }
+
+    .opsdash-panel-desc {
+        font-size: 12px;
+    }
+
+    .opsdash-badge {
+        padding: 5px 9px;
+        font-size: 10px;
+        letter-spacing: 0.06em;
+    }
+
+    .opsdash-table-wrap {
+        border-radius: 10px;
+        background: rgba(148, 163, 184, 0.02);
+    }
+
+    .opsdash-table th {
+        padding: 11px 13px;
+        letter-spacing: 0.06em;
+    }
+
+    .opsdash-table td {
+        padding: 12px 13px;
+        font-size: 12px;
+    }
+
+    .opsdash-status {
+        font-size: 10px;
+        padding: 4px 8px;
+    }
+
+    .opsdash-item {
+        border-radius: 12px;
+        background: rgba(148, 163, 184, 0.02);
+    }
+
+    .opsdash-item-label {
+        font-size: 13px;
+    }
+
+    .opsdash-item-hint,
+    .opsdash-secondary,
+    .opsdash-kv-label,
+    .opsdash-kv-value {
+        font-size: 12px;
+    }
+
+    .opsdash-empty {
+        border-radius: 12px;
+        padding: 18px;
+    }
+
+    .opsdash-btn:hover,
+    .opsdash-metric:hover,
+    .opsdash-linkpanel:hover,
+    .opsdash-item:hover {
+        transform: none;
+    }
 </style>
 
 <section class="opsdash">
@@ -248,19 +427,10 @@
                 <a href="{% url 'manage_leases' %}" class="opsdash-btn opsdash-btn--primary">Manage Leases</a>
                 <a href="{% url 'manage_apartments' %}" class="opsdash-btn">Manage Apartments</a>
             </div>
-            <div class="opsdash-actions-row">
-                <a href="{% url 'export_sales_csv' %}" class="opsdash-btn">Export CSV</a>
-                <a href="{% url 'export_sales_pdf' %}" class="opsdash-btn">Export PDF</a>
-            </div>
         </div>
     </section>
 
     <section class="opsdash-metrics">
-        <a href="{% url 'manage_leases' %}" class="opsdash-card opsdash-metric">
-            <div class="opsdash-metric-top"><div class="opsdash-metric-label">Total Leases</div><div class="opsdash-metric-icon">LS</div></div>
-            <h2 class="opsdash-metric-value">{{ total_leases }}</h2>
-            <div class="opsdash-metric-sub">All lease records</div>
-        </a>
         <a href="{% url 'manage_leases' %}?status=pending" class="opsdash-card opsdash-metric">
             <div class="opsdash-metric-top"><div class="opsdash-metric-label">Pending</div><div class="opsdash-metric-icon warn">PD</div></div>
             <h2 class="opsdash-metric-value">{{ pending_leases }}</h2>
@@ -271,7 +441,7 @@
             <h2 class="opsdash-metric-value">{{ confirmed_leases }}</h2>
             <div class="opsdash-metric-sub">Currently active agreements</div>
         </a>
-        <a href="{% url 'payments' %}" class="opsdash-card opsdash-metric">
+        <a href="{% url 'manage_leases' %}" class="opsdash-card opsdash-metric">
             <div class="opsdash-metric-top"><div class="opsdash-metric-label">Lease Revenue</div><div class="opsdash-metric-icon violet">RV</div></div>
             <h2 class="opsdash-metric-value">P{{ total_revenue|floatformat:0 }}</h2>
             <div class="opsdash-metric-sub">Total lease value</div>
@@ -286,20 +456,11 @@
             <h2 class="opsdash-metric-value">{{ apartments.count }}</h2>
             <div class="opsdash-metric-sub">Units in inventory</div>
         </a>
-        <div class="opsdash-card">
-            <div class="opsdash-metric-top"><div class="opsdash-metric-label">Occupancy (30d)</div><div class="opsdash-metric-icon ok">OC</div></div>
-            <h2 class="opsdash-metric-value">{{ occupancy_rate|floatformat:1 }}%</h2>
-            <div class="opsdash-metric-sub">Estimated occupied room nights</div>
-        </div>
-        <div class="opsdash-card">
-            <div class="opsdash-metric-top"><div class="opsdash-metric-label">Avg Lease Value</div><div class="opsdash-metric-icon warn">AV</div></div>
-            <h2 class="opsdash-metric-value">P{{ avg_lease_value|floatformat:0 }}</h2>
-            <div class="opsdash-metric-sub">Average active lease value</div>
-        </div>
     </section>
 
     <section class="opsdash-layout {% if recent_leases|length <= 3 %}opsdash-layout--compact{% endif %}">
-        <a href="{% url 'manage_leases' %}" class="opsdash-card opsdash-linkpanel">
+        <div class="opsdash-main">
+            <a href="{% url 'manage_leases' %}" class="opsdash-card opsdash-linkpanel">
             <div class="opsdash-panel-head">
                 <div>
                     <h3 class="opsdash-panel-title">Recent Lease Activity</h3>
@@ -349,7 +510,33 @@
                     <p>New tenant lease requests will appear here as they are submitted.</p>
                 </div>
             {% endif %}
-        </a>
+            </a>
+
+            <div class="opsdash-card">
+                <div class="opsdash-panel-head">
+                    <div>
+                        <h3 class="opsdash-panel-title">Top Apartments by Revenue</h3>
+                        <p class="opsdash-panel-desc">Highest earning units based on active/completed leases.</p>
+                    </div>
+                </div>
+                {% if top_rooms %}
+                    <div class="opsdash-top">
+                        {% for room in top_rooms %}
+                            <div class="opsdash-top-row">
+                                <div class="opsdash-rank">{{ forloop.counter }}</div>
+                                <div class="opsdash-primary">Unit {{ room.room }}</div>
+                                <div class="opsdash-kv-value">P{{ room.revenue|floatformat:0 }}</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="opsdash-empty">
+                        <h4>No revenue data yet</h4>
+                        <p>Top-performing apartments will appear here once lease payments are recorded.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
 
         <div class="opsdash-stack">
             <div class="opsdash-card">
@@ -375,11 +562,6 @@
                         <div><div class="opsdash-item-label">Admin Calendar</div><div class="opsdash-item-hint">Events, approvals, and scheduling</div></div>
                         <div class="opsdash-item-arrow">GO</div>
                     </a>
-                    <a href="{% url 'payments' %}" class="opsdash-item">
-                        <div class="opsdash-item-icon">PY</div>
-                        <div><div class="opsdash-item-label">Payment Records</div><div class="opsdash-item-hint">Review rent payment entries</div></div>
-                        <div class="opsdash-item-arrow">GO</div>
-                    </a>
                 </div>
             </div>
 
@@ -387,41 +569,16 @@
                 <div class="opsdash-panel-head">
                     <div>
                         <h3 class="opsdash-panel-title">Performance Snapshot</h3>
-                        <p class="opsdash-panel-desc">Operational indicators for the current filter range.</p>
+                        <p class="opsdash-panel-desc">Key operational metrics for this period.</p>
                     </div>
                 </div>
                 <div class="opsdash-kv">
-                    <div class="opsdash-kv-row"><div class="opsdash-kv-label">Filter period</div><div class="opsdash-kv-value">{{ filter_start_date }} to {{ filter_end_date }}</div></div>
-                    <div class="opsdash-kv-row"><div class="opsdash-kv-label">Pending leases</div><div class="opsdash-kv-value warn">{{ pending_leases }}</div></div>
-                    <div class="opsdash-kv-row"><div class="opsdash-kv-label">Active leases</div><div class="opsdash-kv-value ok">{{ confirmed_leases }}</div></div>
-                    <div class="opsdash-kv-row"><div class="opsdash-kv-label">Occupancy rate (30d)</div><div class="opsdash-kv-value accent">{{ occupancy_rate|floatformat:1 }}%</div></div>
-                    <div class="opsdash-kv-row"><div class="opsdash-kv-label">Average lease value</div><div class="opsdash-kv-value">P{{ avg_lease_value|floatformat:0 }}</div></div>
+                    <div class="opsdash-kv-row"><div class="opsdash-kv-label">Filter Period</div><div class="opsdash-kv-value">{{ filter_start_date }} to {{ filter_end_date }}</div></div>
+                    <div class="opsdash-kv-row"><div class="opsdash-kv-label">Pending Leases</div><div class="opsdash-kv-value warn">{{ pending_leases }}</div></div>
+                    <div class="opsdash-kv-row"><div class="opsdash-kv-label">Active Leases</div><div class="opsdash-kv-value ok">{{ confirmed_leases }}</div></div>
+                    <div class="opsdash-kv-row"><div class="opsdash-kv-label">Occupancy Rate (30d)</div><div class="opsdash-kv-value accent">{{ occupancy_rate|floatformat:1 }}%</div></div>
+                    <div class="opsdash-kv-row"><div class="opsdash-kv-label">Average Lease Value</div><div class="opsdash-kv-value">P{{ avg_lease_value|floatformat:0 }}</div></div>
                 </div>
-            </div>
-
-            <div class="opsdash-card">
-                <div class="opsdash-panel-head">
-                    <div>
-                        <h3 class="opsdash-panel-title">Top Apartments by Revenue</h3>
-                        <p class="opsdash-panel-desc">Best-performing units by lease value.</p>
-                    </div>
-                </div>
-                {% if top_rooms %}
-                    <div class="opsdash-top">
-                        {% for room in top_rooms %}
-                            <div class="opsdash-top-row">
-                                <div class="opsdash-rank">{{ forloop.counter }}</div>
-                                <div class="opsdash-primary">Unit {{ room.room }}</div>
-                                <div class="opsdash-secondary">P{{ room.revenue|floatformat:0 }}</div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <div class="opsdash-empty">
-                        <h4>No revenue data yet</h4>
-                        <p>Top-performing apartments will appear after leases are created.</p>
-                    </div>
-                {% endif %}
             </div>
         </div>
     </section>

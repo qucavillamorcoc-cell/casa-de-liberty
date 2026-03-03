@@ -22,11 +22,12 @@
                 top: 65px;
                 right: 0;
                 left: 0;
-                background: rgba(15, 20, 25, 0.95);
+                background: var(--card-bg);
                 flex-direction: column;
                 gap: 0;
                 padding: 10px 0;
-                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                border-top: 1px solid var(--border-color);
+                box-shadow: 0 14px 30px rgba(15, 23, 42, 0.16);
             }
 
             .nav-links.active {
@@ -40,7 +41,7 @@
 
             .theme-toggle-container {
                 padding: 10px 16px;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                border-bottom: 1px solid var(--border-color);
             }
         }
 
@@ -51,7 +52,7 @@
         }
 
         .mobile-nav-toggle {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
+            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
             border: none;
             color: white;
             padding: 6px 12px;
