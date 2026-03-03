@@ -90,11 +90,11 @@ html.dark-mode .theme-toggle-text {
     position: absolute;
     width: 20px;
     height: 20px;
-    background: #f59e0b;
+    background: #2563eb;
     border-radius: 50%;
     left: 2px;
     transition: all 0.3s ease;
-    box-shadow: 0 2px 6px rgba(245, 158, 11, 0.4);
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
 }
 
 .theme-toggle-checkbox:checked + .theme-toggle-slider {
@@ -104,12 +104,12 @@ html.dark-mode .theme-toggle-text {
 
 .theme-toggle-checkbox:checked + .theme-toggle-slider::after {
     left: 26px;
-    background: #f59e0b;
-    box-shadow: 0 2px 6px rgba(245, 158, 11, 0.4);
+    background: #2563eb;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
 }
 
 .theme-toggle-label:hover .theme-toggle-slider {
-    border-color: rgba(245, 158, 11, 0.6);
+    border-color: rgba(37, 99, 235, 0.6);
 }
 
 /* ============================================================================ */
@@ -194,7 +194,7 @@ html.dark-mode .theme-toggle-text {
 .form-textarea:focus {
     outline: none;
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 html.dark-mode .form-input,

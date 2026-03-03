@@ -7,7 +7,7 @@
 
 /* Previously made sidebar narrower; now we keep it the same width
    as the default layout so admin dashboard uses the same proportions as
-   the mock‑up.  Most of these rules are no longer needed and are kept for
+   the mockâ€‘up.  Most of these rules are no longer needed and are kept for
    reference in case we want a future 'compact' mode. */
 /*
 .sidebar {
@@ -126,7 +126,7 @@
 /* Header area for prominent cards (uses background gradient similar to apartments) */
 .card .card-top, .stat-card .card-top, .card-top-hero {
     height: 140px;
-    background: linear-gradient(135deg, #7c3aed 0%, #60a5fa 100%);
+    background: linear-gradient(135deg, #1d4ed8 0%, #60a5fa 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -231,3 +231,4 @@
         grid-template-columns: 1fr;
     }
 }
+

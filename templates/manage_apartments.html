@@ -111,8 +111,8 @@
         .form-select:focus,
         .form-textarea:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
             background: white;
         }
         
@@ -120,8 +120,8 @@
         html.dark-mode .form-select:focus,
         html.dark-mode .form-textarea:focus {
             background: var(--bg-tertiary);
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
         }
         
         .form-input::placeholder,
@@ -141,7 +141,7 @@
         
         input[type="file"]::file-selector-button {
             padding: 8px 16px;
-            background: #667eea;
+            background: #2563eb;
             color: white;
             border: none;
             border-radius: 6px;
@@ -152,18 +152,18 @@
         }
         
         input[type="file"]::file-selector-button:hover {
-            background: #5568d3;
+            background: #1d4ed8;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
         }
         
         html.dark-mode input[type="file"]::file-selector-button {
-            background: #667eea;
+            background: #2563eb;
             color: white;
         }
         
         html.dark-mode input[type="file"]::file-selector-button:hover {
-            background: #5568d3;
+            background: #1d4ed8;
         }
         
         .form-textarea {
@@ -200,13 +200,13 @@
         }
         
         .form-btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
             color: white;
         }
         
         .form-btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
         }
         
         .form-btn-secondary {
@@ -339,7 +339,7 @@
         position: relative;
         width: 100%;
         height: 200px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -351,8 +351,8 @@
     }
     
     .admin-carousel.drag-over {
-        background: linear-gradient(135deg, #5568d3 0%, #6a3fa0 100%);
-        box-shadow: inset 0 0 0 2px #667eea;
+        background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+        box-shadow: inset 0 0 0 2px #2563eb;
     }
     
     .admin-carousel.drag-over::before {
@@ -361,7 +361,7 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        background: rgba(102, 126, 234, 0.95);
+        background: rgba(37, 99, 235, 0.95);
         color: white;
         padding: 20px 40px;
         border-radius: 8px;
@@ -475,7 +475,7 @@
     }
     
     .carousel-btn {
-        background-color: #667eea;
+        background-color: #2563eb;
         color: white;
         border: none;
         padding: 6px 12px;
@@ -484,18 +484,18 @@
         font-size: 13px;
         font-weight: bold;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
     }
     
     .carousel-btn:hover {
-        background-color: #5568d3;
+        background-color: #1d4ed8;
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.6);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.6);
     }
     
     .carousel-btn:active {
         transform: translateY(0);
-        box-shadow: 0 2px 4px rgba(102, 126, 234, 0.4);
+        box-shadow: 0 2px 4px rgba(37, 99, 235, 0.4);
     }
     
     @keyframes slideInFromRight {
@@ -670,7 +670,7 @@
                 {% for photo in apartment.photos.all %}
                     {% if photo.display_url %}
                     <div class="carousel-item {% if forloop.first %}active{% endif %}" data-apt-id="{{ apartment.id }}" data-photo-id="{{ photo.id }}">
-                        <img src="{{ photo.display_url }}" alt="{% if photo.caption %}{{ photo.caption }}{% else %}Apartment {{ apartment.unit_number }} - Photo {{ forloop.counter }}{% endif %}" onerror="this.onerror=null; this.parentElement.style.background='linear-gradient(135deg, #667eea 0%, #764ba2 100%)'; this.style.display='none';">
+                        <img src="{{ photo.display_url }}" alt="{% if photo.caption %}{{ photo.caption }}{% else %}Apartment {{ apartment.unit_number }} - Photo {{ forloop.counter }}{% endif %}" onerror="this.onerror=null; this.parentElement.style.background='linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)'; this.style.display='none';">
                         <button type="button" class="carousel-delete-btn" onclick="deleteApartmentPhoto({{ photo.id }}, {{ apartment.id }})" title="Delete photo">🗑️</button>
                     </div>
                     {% endif %}
@@ -986,23 +986,23 @@
     }
     
     .drop-zone {
-        border: 2px dashed #667eea;
+        border: 2px dashed #2563eb;
         border-radius: 8px;
         padding: 40px 20px;
         text-align: center;
         cursor: pointer;
         transition: all 0.3s ease;
-        background-color: rgba(102, 126, 234, 0.05);
+        background-color: rgba(37, 99, 235, 0.05);
     }
     
     .drop-zone:hover {
-        background-color: rgba(102, 126, 234, 0.1);
-        border-color: #5568d3;
+        background-color: rgba(37, 99, 235, 0.1);
+        border-color: #1d4ed8;
     }
     
     .drop-zone.drag-over {
-        background-color: rgba(102, 126, 234, 0.15);
-        border-color: #5568d3;
+        background-color: rgba(37, 99, 235, 0.15);
+        border-color: #1d4ed8;
         transform: scale(1.02);
     }
     
@@ -1050,7 +1050,7 @@
     
     .file-count-badge {
         display: inline-block;
-        background-color: #667eea;
+        background-color: #2563eb;
         color: white;
         padding: 4px 12px;
         border-radius: 20px;
@@ -1085,8 +1085,8 @@
     
     .order-input input[type="number"]:focus {
         outline: none;
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
     }
     
     .modal-footer {
@@ -1117,15 +1117,15 @@
     }
     
     .modal-btn-primary {
-        background-color: #667eea;
+        background-color: #2563eb;
         color: white;
-        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
     }
     
     .modal-btn-primary:hover:not(:disabled) {
-        background-color: #5568d3;
+        background-color: #1d4ed8;
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.6);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.6);
     }
     
     .modal-btn-primary:disabled {
@@ -1135,14 +1135,14 @@
     }
     
     .btn-luxury-info {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
         color: white;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
     .btn-luxury-info:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
     }
     
     .btn-luxury-info:active {
@@ -1741,3 +1741,4 @@
 </script>
 
 {% endblock %}
+

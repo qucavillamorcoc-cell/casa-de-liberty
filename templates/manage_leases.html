@@ -128,26 +128,26 @@
         .filter-btn:hover {
             background: #cbd5e1;
             transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.15);
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.15);
         }
         
         html.dark-mode .filter-btn:hover {
             background: rgba(255, 255, 255, 0.08);
             color: var(--text-primary);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.25);
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
         }
         
         .filter-btn.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
             color: white;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
             animation: pulse 2s ease-in-out infinite;
         }
         
         html.dark-mode .filter-btn.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
             color: white;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
             border-color: transparent;
         }
     </style>
@@ -173,13 +173,13 @@
 
 <!-- Pending Lease Requests Alert -->
 {% if pending_count > 0 and not request.GET.status %}
-<div class="section" style="animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.15s backwards, pulse 3s ease-in-out infinite; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-left: 4px solid #f59e0b; border-radius: 12px; padding: 20px; margin-bottom: 32px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);" onmouseover="this.style.boxShadow='0 8px 24px rgba(245, 158, 11, 0.25)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='none'; this.style.transform='translateY(0)'">
+<div class="section" style="animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.15s backwards, pulse 3s ease-in-out infinite; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-left: 4px solid #2563eb; border-radius: 12px; padding: 20px; margin-bottom: 32px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);" onmouseover="this.style.boxShadow='0 8px 24px rgba(37, 99, 235, 0.25)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='none'; this.style.transform='translateY(0)'">
     <div style="display: flex; align-items: center; justify-content: space-between;">
         <div>
             <h3 style="margin: 0 0 8px 0; color: #92400e; font-weight: 700; font-size: 18px; animation: slideInLeft 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.2s backwards;">⏳ Pending Lease Requests</h3>
             <p style="margin: 0; color: #92400e; font-size: 14px; animation: slideInLeft 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.25s backwards;">You have <strong>{{ pending_count }}</strong> lease request(s) waiting for approval</p>
         </div>
-        <a href="{% url 'manage_leases' %}?status=pending" style="padding: 12px 24px; background: #f59e0b; color: white; text-decoration: none; border-radius: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; font-size: 12px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: inline-block; animation: scaleIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.3s backwards;" onmouseover="this.style.background='#d97706'; this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 20px rgba(245, 158, 11, 0.4)'" onmouseout="this.style.background='#f59e0b'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">Review Now</a>
+        <a href="{% url 'manage_leases' %}?status=pending" style="padding: 12px 24px; background: #2563eb; color: white; text-decoration: none; border-radius: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; font-size: 12px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: inline-block; animation: scaleIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.3s backwards;" onmouseover="this.style.background='#1d4ed8'; this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 20px rgba(37, 99, 235, 0.4)'" onmouseout="this.style.background='#2563eb'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">Review Now</a>
     </div>
 </div>
 {% endif %}
@@ -206,7 +206,7 @@
         }
         
         .leases-table thead {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
             color: white;
             position: sticky;
             top: 0;
@@ -258,13 +258,13 @@
         
         .leases-table tbody tr:hover {
             background: #f8fafc;
-            box-shadow: inset 0 0 12px rgba(102, 126, 234, 0.08);
+            box-shadow: inset 0 0 12px rgba(37, 99, 235, 0.08);
             transform: scale(1.01);
             border-radius: 8px;
         }
         
         html.dark-mode .leases-table tbody tr:hover {
-            background: rgba(102, 126, 234, 0.1);
+            background: rgba(37, 99, 235, 0.1);
         }
         
         .leases-table td {
@@ -275,13 +275,13 @@
         
         .lease-id {
             font-weight: 700;
-            color: #667eea;
+            color: #2563eb;
             font-size: 12px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         .leases-table tbody tr:hover .lease-id {
-            color: #764ba2;
+            color: #1d4ed8;
             transform: translateX(2px);
         }
         
@@ -306,7 +306,7 @@
         }
         
         .leases-table tbody tr:hover .lease-email {
-            color: #667eea;
+            color: #2563eb;
         }
         
         html.dark-mode .lease-email {
@@ -402,13 +402,13 @@
         }
         
         .status-select-pending {
-            border-color: #f59e0b;
+            border-color: #2563eb;
             background: #fef3c7;
             color: #92400e;
         }
         
         html.dark-mode .status-select-pending {
-            background: rgba(245, 158, 11, 0.2);
+            background: rgba(37, 99, 235, 0.2);
             border-color: #fbbf24;
             color: #fcd34d;
         }
@@ -506,10 +506,10 @@
             </thead>
             <tbody>
                 {% for lease in leases %}
-                <tr {% if lease.status == 'pending' %}style="background: rgba(245, 158, 11, 0.05); border-left: 4px solid #f59e0b;"{% endif %}>
+                <tr {% if lease.status == 'pending' %}style="background: rgba(37, 99, 235, 0.05); border-left: 4px solid #2563eb;"{% endif %}>
                     <td class="lease-id">
                         #{{ lease.id }}
-                        {% if lease.status == 'pending' %}<span style="display: block; font-size: 11px; color: #f59e0b; font-weight: 700; margin-top: 4px; text-transform: uppercase;">⏳ Pending</span>{% endif %}
+                        {% if lease.status == 'pending' %}<span style="display: block; font-size: 11px; color: #2563eb; font-weight: 700; margin-top: 4px; text-transform: uppercase;">⏳ Pending</span>{% endif %}
                     </td>
                     <td class="lease-tenant">{{ lease.tenant.username }}</td>
                     <td class="lease-email">{{ lease.tenant.email|default:"N/A" }}</td>

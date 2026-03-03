@@ -283,12 +283,22 @@ STATICFILES_DIRS = [BASE_DIR / 'static']  # Development static files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+staticfiles_backend = os.getenv('STATICFILES_BACKEND', '').strip()
+if not staticfiles_backend:
+    # Prevent local 500 errors from missing manifest entries while keeping
+    # hashed/compressed assets for production deployments.
+    staticfiles_backend = (
+        'whitenoise.storage.CompressedManifestStaticFilesStorage'
+        if (not DEBUG and not IS_RUNSERVER)
+        else 'django.contrib.staticfiles.storage.StaticFilesStorage'
+    )
+
 STORAGES = {
     'default': {
         'BACKEND': 'django.core.files.storage.FileSystemStorage',
     },
     'staticfiles': {
-        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+        'BACKEND': staticfiles_backend,
     },
 }
 

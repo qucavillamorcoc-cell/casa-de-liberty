@@ -19,7 +19,7 @@
 </div>
 
 <!-- Upcoming Events & Payments Consolidated Section (Admin) -->
-<div id="admin-agenda-container" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 20px; margin-bottom: 20px; color: white; box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2); transition: all 0.3s ease;">
+<div id="admin-agenda-container" style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); border-radius: 16px; padding: 20px; margin-bottom: 20px; color: white; box-shadow: 0 8px 24px rgba(37, 99, 235, 0.2); transition: all 0.3s ease;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
         <h2 style="margin: 0; font-size: 24px; font-weight: 700;">📋 All Upcoming Events & Payments</h2>
         <button id="toggle-admin-agenda-btn" onclick="toggleAdminAgenda()" style="padding: 12px 24px; background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.4); border-radius: 8px; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);" onmouseover="this.style.background='rgba(255,255,255,0.3)'; this.style.borderColor='rgba(255,255,255,0.6)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.borderColor='rgba(255,255,255,0.4)'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
@@ -57,7 +57,7 @@
             <h3 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 700; color: white; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9;">⏳ Pending Tenant Requests ({{ pending_requests|length }})</h3>
             <div style="display: grid; gap: 12px;">
                 {% for event in pending_requests %}
-                <div onclick="navigateToDate('{{ event.event_date|date:'Y-m-d' }}')" style="background: rgba(245, 158, 11, 0.15); border-radius: 12px; padding: 16px; backdrop-filter: blur(10px); border-left: 4px solid #f59e0b; transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.background='rgba(245, 158, 11, 0.25)'; this.style.transform='translateX(8px)'" onmouseout="this.style.background='rgba(245, 158, 11, 0.15)'; this.style.transform='translateX(0)'">
+                <div onclick="navigateToDate('{{ event.event_date|date:'Y-m-d' }}')" style="background: rgba(37, 99, 235, 0.15); border-radius: 12px; padding: 16px; backdrop-filter: blur(10px); border-left: 4px solid #2563eb; transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.background='rgba(37, 99, 235, 0.25)'; this.style.transform='translateX(8px)'" onmouseout="this.style.background='rgba(37, 99, 235, 0.15)'; this.style.transform='translateX(0)'">
                     <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
                         <div>
                             <p style="margin: 0; font-weight: 700; font-size: 15px; color: white;">{{ event.title }}</p>
@@ -263,8 +263,8 @@ document.head.appendChild(style);
     }
     
     .calendar-nav button:hover {
-        border-color: #667eea;
-        color: #667eea;
+        border-color: #2563eb;
+        color: #2563eb;
     }
     
     .calendar-grid {
@@ -277,7 +277,7 @@ document.head.appendChild(style);
     .calendar-day-header {
         text-align: center;
         font-weight: 700;
-        color: #667eea;
+        color: #2563eb;
         padding: 12px 0;
         font-size: 12px;
         text-transform: uppercase;
@@ -305,15 +305,15 @@ document.head.appendChild(style);
     }
     
     .calendar-day:hover {
-        border-color: #667eea;
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+        border-color: #2563eb;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
     }
     
     .calendar-day.today {
-        border-color: #667eea;
-        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.05));
+        border-color: #2563eb;
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(29, 78, 216, 0.05));
         font-weight: 700;
-        color: #667eea;
+        color: #2563eb;
     }
     
     .calendar-day-number {
@@ -368,7 +368,7 @@ document.head.appendChild(style);
     }
     
     .event-item-mini.admin { background: #10b981; }
-    .event-item-mini.tenant_request { background: #f59e0b; }
+    .event-item-mini.tenant_request { background: #2563eb; }
     .event-item-mini.tenant_event { background: #3b82f6; }
     .event-item-mini.days_off { background: #ef4444; }
     .event-item-mini.rent { background: #ec7063; }
@@ -377,7 +377,7 @@ document.head.appendChild(style);
 .event-item-mini.payment.pending { background: #ec7063; }
     
     .event-dot.admin { background: #10b981; }
-    .event-dot.pending { background: #f59e0b; box-shadow: 0 2px 6px rgba(245, 158, 11, 0.4); }
+    .event-dot.pending { background: #2563eb; box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4); }
     .event-dot.tenant { background: #3b82f6; }
     .event-dot.payment { background: #ec7063; box-shadow: 0 2px 6px rgba(236, 112, 99, 0.4); }
     .event-dot.off { background: #ef4444; }
@@ -413,7 +413,7 @@ document.head.appendChild(style);
     
     .event-item {
         padding: 10px;
-        border-left: 4px solid #667eea;
+        border-left: 4px solid #2563eb;
         background: #f8fafc;
         border-radius: 8px;
         margin-bottom: 8px;
@@ -425,7 +425,7 @@ document.head.appendChild(style);
         border-left-color: #60a5fa;
     }
     
-    .event-item.pending { border-left-color: #f59e0b; }
+    .event-item.pending { border-left-color: #2563eb; }
     .event-item.approved { border-left-color: #10b981; }
     .event-item.payment { border-left-color: #ec7063; }
     
@@ -527,12 +527,12 @@ document.head.appendChild(style);
     .form-group-mini select:focus,
     .form-group-mini textarea:focus {
         outline: none;
-        border-color: #667eea;
+        border-color: #2563eb;
     }
     
     .add-event-btn {
         padding: 10px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
         color: white;
         border: none;
         border-radius: 8px;
@@ -545,7 +545,7 @@ document.head.appendChild(style);
     
     .add-event-btn:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
     }
     
     .legend {
@@ -717,7 +717,7 @@ document.head.appendChild(style);
                 <span>Tenant Event</span>
             </div>
             <div class="legend-item">
-                <div class="legend-color" style="background: #f59e0b;"></div>
+                <div class="legend-color" style="background: #2563eb;"></div>
                 <span>Pending Request</span>
             </div>
             <div class="legend-item">

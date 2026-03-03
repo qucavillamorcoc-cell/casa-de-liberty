@@ -44,7 +44,7 @@
                 <div class="luxury-divider"></div>
                 
                 <!-- Booking Details Grid -->
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; padding: 20px; background: linear-gradient(135deg, #f8fafb, #f1f5f9); border-radius: 12px; border-left: 4px solid #667eea;">
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; padding: 20px; background: linear-gradient(135deg, #f8fafb, #f1f5f9); border-radius: 12px; border-left: 4px solid #2563eb;">
                     <div>
                         <p style="font-size: 12px; color: #64748b; font-weight: 700; margin: 0 0 6px 0; text-transform: uppercase; letter-spacing: 0.5px;">Check-in</p>
                         <p style="font-size: 16px; font-weight: 700; color: #1e293b; margin: 0;">{{ booking.check_in|date:"M d, Y" }}</p>
@@ -61,23 +61,23 @@
                 
                 <!-- Pricing Info -->
                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px;">
-                    <div style="padding: 12px; background: #f8fafc; border-radius: 10px; border-left: 3px solid #667eea;">
+                    <div style="padding: 12px; background: #f8fafc; border-radius: 10px; border-left: 3px solid #2563eb;">
                         <p style="font-size: 12px; color: #64748b; margin: 0 0 6px 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Total Amount</p>
-                        <p style="font-size: 22px; font-weight: 900; color: #667eea; margin: 0;">₱{{ booking.total_price }}</p>
+                        <p style="font-size: 22px; font-weight: 900; color: #2563eb; margin: 0;">₱{{ booking.total_price }}</p>
                     </div>
                     <div style="padding: 12px; background: #d1fae5; border-radius: 10px; border-left: 3px solid #10b981;">
                         <p style="font-size: 12px; color: #065f46; margin: 0 0 6px 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Paid</p>
                         <p style="font-size: 22px; font-weight: 900; color: #10b981; margin: 0;">₱{{ booking.get_total_paid }}</p>
                     </div>
-                    <div style="padding: 12px; background: {% if booking.is_fully_paid %}#d1fae5{% else %}#fef3c7{% endif %}; border-radius: 10px; border-left: 3px solid {% if booking.is_fully_paid %}#10b981{% else %}#f59e0b{% endif %};">
+                    <div style="padding: 12px; background: {% if booking.is_fully_paid %}#d1fae5{% else %}#fef3c7{% endif %}; border-radius: 10px; border-left: 3px solid {% if booking.is_fully_paid %}#10b981{% else %}#2563eb{% endif %};">
                         <p style="font-size: 12px; color: {% if booking.is_fully_paid %}#065f46{% else %}#92400e{% endif %}; margin: 0 0 6px 0; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Balance</p>
-                        <p style="font-size: 22px; font-weight: 900; color: {% if booking.is_fully_paid %}#10b981{% else %}#f59e0b{% endif %}; margin: 0;">₱{{ booking.get_balance }}</p>
+                        <p style="font-size: 22px; font-weight: 900; color: {% if booking.is_fully_paid %}#10b981{% else %}#2563eb{% endif %}; margin: 0;">₱{{ booking.get_balance }}</p>
                     </div>
                 </div>
                 
                 <!-- Guest Info -->
                 {% if booking.special_requests %}
-                <div style="padding: 16px; background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 10px; margin-bottom: 20px; border-left: 4px solid #f59e0b;">
+                <div style="padding: 16px; background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 10px; margin-bottom: 20px; border-left: 4px solid #2563eb;">
                     <p style="font-size: 12px; color: #92400e; font-weight: 700; margin: 0 0 6px 0; text-transform: uppercase; letter-spacing: 0.5px;">Special Requests</p>
                     <p style="font-size: 14px; color: #b45309; margin: 0; line-height: 1.6;">{{ booking.special_requests }}</p>
                 </div>

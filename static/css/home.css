@@ -103,12 +103,12 @@ html.dark-mode .navbar:hover {
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.2);
 }
 
 .nav-brand:hover .brand-icon {
     transform: scale(1.08);
-    box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
+    box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
 }
 
 .brand-text {
@@ -152,7 +152,7 @@ html.dark-mode .navbar:hover {
 
 .nav-link:hover {
     color: var(--accent);
-    background: rgba(245, 158, 11, 0.1);
+    background: rgba(37, 99, 235, 0.1);
 }
 
 .btn-nav-login {
@@ -160,13 +160,13 @@ html.dark-mode .navbar:hover {
     color: white !important;
     padding: 12px 24px;
     border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-nav-login:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+    box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
 }
 
 /* Theme Toggle */
@@ -217,7 +217,7 @@ html.dark-mode .navbar:hover {
     border-radius: 50%;
     left: 2px;
     transition: all 0.3s ease;
-    box-shadow: 0 2px 6px rgba(245, 158, 11, 0.4);
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
 }
 
 .theme-toggle-checkbox:checked + .theme-toggle-slider {
@@ -259,8 +259,8 @@ html.dark-mode .hero-section {
     left: 0;
     right: 0;
     bottom: 0;
-    background: radial-gradient(circle at 30% 50%, rgba(102, 126, 234, 0.05) 0%, transparent 50%),
-                radial-gradient(circle at 70% 30%, rgba(245, 158, 11, 0.03) 0%, transparent 50%);
+    background: radial-gradient(circle at 30% 50%, rgba(37, 99, 235, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 70% 30%, rgba(37, 99, 235, 0.03) 0%, transparent 50%);
     pointer-events: none;
 }
 
@@ -277,8 +277,8 @@ html.dark-mode .hero-section {
     align-items: center;
     gap: 8px;
     padding: 12px 24px;
-    background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.2));
-    border: 1px solid rgba(245, 158, 11, 0.4);
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.2), rgba(29, 78, 216, 0.2));
+    border: 1px solid rgba(37, 99, 235, 0.4);
     border-radius: 50px;
     color: var(--accent);
     font-size: 14px;
@@ -348,12 +348,12 @@ html.dark-mode .hero-section {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border: none;
     cursor: pointer;
-    box-shadow: 0 10px 30px rgba(245, 158, 11, 0.3);
+    box-shadow: 0 10px 30px rgba(37, 99, 235, 0.3);
 }
 
 .btn-primary-luxury:hover {
     transform: translateY(-3px);
-    box-shadow: 0 15px 40px rgba(245, 158, 11, 0.4);
+    box-shadow: 0 15px 40px rgba(37, 99, 235, 0.4);
 }
 
 .btn-arrow {
@@ -476,7 +476,7 @@ html.light-mode .why-choose-section {
 .feature-card:hover {
     border-color: var(--accent);
     transform: translateY(-8px);
-    box-shadow: 0 20px 40px rgba(245, 158, 11, 0.15);
+    box-shadow: 0 20px 40px rgba(37, 99, 235, 0.15);
 }
 
 .feature-card:hover .feature-icon {
@@ -491,7 +491,7 @@ html.light-mode .why-choose-section {
     justify-content: center;
     width: 100px;
     height: 100px;
-    background: linear-gradient(135deg, #f5c56d, #f59e0b);
+    background: linear-gradient(135deg, #60a5fa, #2563eb);
     border-radius: 50%;
     margin-left: auto;
     margin-right: auto;
@@ -553,7 +553,7 @@ html.light-mode .how-to-section {
 
 .step-card {
     background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(245, 158, 11, 0.2);
+    border: 1px solid rgba(37, 99, 235, 0.2);
     border-radius: 16px;
     padding: 40px 30px;
     transition: all 0.3s ease;
@@ -567,10 +567,10 @@ html.light-mode .how-to-section {
 }
 
 .step-card:hover {
-    background: rgba(245, 158, 11, 0.1);
-    border-color: rgba(245, 158, 11, 0.4);
+    background: rgba(37, 99, 235, 0.1);
+    border-color: rgba(37, 99, 235, 0.4);
     transform: translateY(-10px);
-    box-shadow: 0 20px 40px rgba(245, 158, 11, 0.2);
+    box-shadow: 0 20px 40px rgba(37, 99, 235, 0.2);
 }
 
 .step-icon {
@@ -579,7 +579,7 @@ html.light-mode .how-to-section {
     justify-content: center;
     width: 80px;
     height: 80px;
-    background: linear-gradient(135deg, #f5c56d, #f59e0b);
+    background: linear-gradient(135deg, #60a5fa, #2563eb);
     border-radius: 50%;
     font-size: 2rem;
     margin-bottom: 20px;
@@ -651,7 +651,7 @@ html.light-mode .contact-section {
     text-align: center;
     padding: 40px 30px;
     background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(245, 158, 11, 0.2);
+    border: 1px solid rgba(37, 99, 235, 0.2);
     border-radius: 16px;
     text-decoration: none;
     color: #ffffff;
@@ -660,17 +660,17 @@ html.light-mode .contact-section {
 }
 
 .contact-card:hover {
-    background: rgba(245, 158, 11, 0.1);
-    border-color: rgba(245, 158, 11, 0.4);
+    background: rgba(37, 99, 235, 0.1);
+    border-color: rgba(37, 99, 235, 0.4);
     transform: translateY(-8px);
-    box-shadow: 0 15px 40px rgba(245, 158, 11, 0.2);
+    box-shadow: 0 15px 40px rgba(37, 99, 235, 0.2);
 }
 
 .contact-card-icon {
     font-size: 3rem;
     width: 80px;
     height: 80px;
-    background: linear-gradient(135deg, #f5c56d, #f59e0b);
+    background: linear-gradient(135deg, #60a5fa, #2563eb);
     border-radius: 50%;
     display: flex;
     align-items: center;

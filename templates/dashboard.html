@@ -16,7 +16,7 @@
         --pd-accent: #3b82f6;
         --pd-accent-2: #0ea5e9;
         --pd-success: #10b981;
-        --pd-warning: #f59e0b;
+        --pd-warning: #2563eb;
         --pd-danger: #ef4444;
         --pd-shadow: 0 20px 46px rgba(2, 8, 23, 0.24);
         max-width: 1260px;
@@ -121,7 +121,7 @@
         place-items: center;
         font-weight: 800;
         color: #fff;
-        background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
         box-shadow: 0 10px 22px rgba(37, 99, 235, 0.26);
         flex-shrink: 0;
     }
@@ -132,7 +132,7 @@
         border: 1px solid var(--pd-border);
         background:
             radial-gradient(circle at 14% 18%, rgba(14, 165, 233, 0.12) 0, rgba(14, 165, 233, 0) 46%),
-            radial-gradient(circle at 92% 50%, rgba(249, 115, 22, 0.08) 0, rgba(249, 115, 22, 0) 42%),
+            radial-gradient(circle at 92% 50%, rgba(37, 99, 235, 0.08) 0, rgba(37, 99, 235, 0) 42%),
             linear-gradient(135deg, rgba(17, 27, 50, 0.95) 0%, rgba(12, 21, 39, 0.92) 50%, rgba(15, 25, 44, 0.93) 100%);
         box-shadow: var(--pd-shadow);
         padding: 22px;
@@ -146,7 +146,7 @@
     html:not(.dark-mode) .portal-dashboard__hero {
         background:
             radial-gradient(circle at 14% 18%, rgba(14, 165, 233, 0.12) 0, rgba(14, 165, 233, 0) 46%),
-            radial-gradient(circle at 92% 50%, rgba(249, 115, 22, 0.08) 0, rgba(249, 115, 22, 0) 42%),
+            radial-gradient(circle at 92% 50%, rgba(37, 99, 235, 0.08) 0, rgba(37, 99, 235, 0) 42%),
             linear-gradient(135deg, rgba(250, 252, 255, 0.95) 0%, rgba(244, 248, 255, 0.95) 100%);
     }
 
@@ -208,7 +208,7 @@
         min-height: 48px;
         border-radius: 12px;
         border: 1px solid rgba(251, 146, 60, 0.28);
-        background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
         color: #fff;
         text-decoration: none;
         font-weight: 800;
@@ -285,9 +285,9 @@
         font-weight: 800;
     }
 
-    .portal-metric__icon--warning { background: rgba(245, 158, 11, 0.14); }
+    .portal-metric__icon--warning { background: rgba(37, 99, 235, 0.14); }
     .portal-metric__icon--success { background: rgba(16, 185, 129, 0.14); }
-    .portal-metric__icon--violet  { background: rgba(139, 92, 246, 0.14); }
+    .portal-metric__icon--violet  { background: rgba(37, 99, 235, 0.14); }
 
     .portal-metric__value {
         font-size: clamp(24px, 2vw, 30px);
@@ -469,8 +469,8 @@
 
     .portal-status--pending {
         color: #fbbf24;
-        background: rgba(245, 158, 11, 0.12);
-        border-color: rgba(245, 158, 11, 0.18);
+        background: rgba(37, 99, 235, 0.12);
+        border-color: rgba(37, 99, 235, 0.18);
     }
 
     .portal-status--cancelled {
@@ -871,3 +871,4 @@
     </div>
 </section>
 {% endblock %}
+

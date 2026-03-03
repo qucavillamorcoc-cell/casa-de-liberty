@@ -64,11 +64,11 @@
 
         <!-- Unpaid Dues Selection -->
         {% if unpaid_dues %}
-        <div style="margin-top: 20px; padding: 16px; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 8px;">
+        <div style="margin-top: 20px; padding: 16px; background: #fef3c7; border-left: 4px solid #2563eb; border-radius: 8px;">
             <h4 style="margin: 0 0 12px 0; color: #92400e; font-weight: 700;">Unpaid Monthly Dues</h4>
             <div style="max-height: 150px; overflow-y: auto;">
                 {% for due in unpaid_dues %}
-                <div style="padding: 8px 0; border-bottom: 1px solid rgba(245, 158, 11, 0.2); display: flex; justify-content: space-between; align-items: center;">
+                <div style="padding: 8px 0; border-bottom: 1px solid rgba(37, 99, 235, 0.2); display: flex; justify-content: space-between; align-items: center;">
                     <span style="color: #92400e; font-weight: 600;">{{ due.due_date|date:"F Y" }}</span>
                     <span style="color: #92400e; font-weight: 700;">₱{{ due.amount_due }}</span>
                 </div>

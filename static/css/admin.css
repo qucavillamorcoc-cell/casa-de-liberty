@@ -14,15 +14,15 @@ input[type="file"] {
 }
 
 input[type="file"]:hover {
-    border-color: #667eea;
+    border-color: #2563eb;
     background-color: #2d3748;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 input[type="file"]:focus {
     outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
     background-color: #2d3748;
 }
 
@@ -50,7 +50,7 @@ input[type="file"]:focus {
 /* Upload button styling for file input */
 input[type="file"]::file-selector-button {
     padding: 6px 12px;
-    background-color: #667eea;
+    background-color: #2563eb;
     color: white;
     border: none;
     border-radius: 4px;
@@ -62,20 +62,20 @@ input[type="file"]::file-selector-button {
 }
 
 input[type="file"]::file-selector-button:hover {
-    background-color: #5568d3;
+    background-color: #1d4ed8;
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
 }
 
 input[type="file"]::file-selector-button:active {
     transform: translateY(0);
-    box-shadow: 0 1px 4px rgba(102, 126, 234, 0.2);
+    box-shadow: 0 1px 4px rgba(37, 99, 235, 0.2);
 }
 
 /* Alternative for browsers that don't support ::file-selector-button */
 input[type="file"]::-webkit-file-upload-button {
     padding: 6px 12px;
-    background-color: #667eea;
+    background-color: #2563eb;
     color: white;
     border: none;
     border-radius: 4px;
@@ -87,9 +87,9 @@ input[type="file"]::-webkit-file-upload-button {
 }
 
 input[type="file"]::-webkit-file-upload-button:hover {
-    background-color: #5568d3;
+    background-color: #1d4ed8;
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
 }
 
 /* Inline form styling for photo inputs */
@@ -182,20 +182,20 @@ input[type="checkbox"].clear + label {
 .inline-related td input[type="number"]:focus,
 .inline-related td select:focus {
     outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
     background-color: #2d3748;
 }
 
 /* Add button styling */
 .add-row a {
-    color: #667eea;
+    color: #2563eb;
     text-decoration: none;
     transition: color 0.3s ease;
 }
 
 .add-row a:hover {
-    color: #5568d3;
+    color: #1d4ed8;
 }
 
 /* Delete icon styling */
@@ -221,3 +221,4 @@ p.help {
     border-color: #059669 !important;
     color: #d1fae5 !important;
 }
+
