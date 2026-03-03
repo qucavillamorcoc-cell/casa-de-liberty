@@ -117,9 +117,12 @@ class ApartmentPhoto(models.Model):
         """Template-safe image URL supporting both URL and uploaded-file sources."""
         if self.photo_url:
             return self.photo_url
-        if self.photo:
+        if self.photo and self.photo.name:
             try:
-                return self.photo.url
+                # Guard against stale DB rows pointing to files that no longer exist on disk.
+                if self.photo.storage.exists(self.photo.name):
+                    return self.photo.url
+                return ''
             except Exception:
                 return ''
         return ''

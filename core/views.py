@@ -2730,25 +2730,41 @@ def upload_apartment_photos(request):
     )
 
     created = []
-    next_order = apartment.photos.count()
+
+    # Remove stale local-file rows (common after deployments without persisted /media).
+    for existing in list(apartment.photos.all()):
+        if existing.photo and existing.photo.name and not existing.photo_url:
+            try:
+                if not existing.photo.storage.exists(existing.photo.name):
+                    existing.delete()
+            except Exception:
+                # If storage check fails, keep row and let normal validation/rendering handle it.
+                pass
+
+    def next_available_order():
+        used_orders = set(apartment.photos.values_list('photo_order', flat=True))
+        for idx in range(4):
+            if idx not in used_orders:
+                return idx
+        return None
 
     for photo_url in _normalized_photo_urls(raw_photo_url_values):
-        if next_order >= 4:
+        order = next_available_order()
+        if order is None:
             break
         photo = ApartmentPhoto.objects.create(
             apartment=apartment,
             photo_url=photo_url,
-            photo_order=next_order
+            photo_order=order
         )
         created.append(photo.id)
-        next_order += 1
 
     for f in files:
-        if next_order >= 4:
+        order = next_available_order()
+        if order is None:
             break
-        photo = ApartmentPhoto.objects.create(apartment=apartment, photo=f, photo_order=next_order)
+        photo = ApartmentPhoto.objects.create(apartment=apartment, photo=f, photo_order=order)
         created.append(photo.id)
-        next_order += 1
 
     return JsonResponse({'success': True, 'created': created})
 
